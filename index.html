@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Achtergrond Verwijderaar met Bijsnijden</title>
+    <title>Achtergrond Verwijderaar met Screenshot</title>
     <style>
         * {
             box-sizing: border-box;
@@ -72,6 +72,43 @@
             color: #182848;
         }
         
+        .input-methods {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .method-btn {
+            flex: 1;
+            padding: 15px;
+            background-color: #f8f9ff;
+            border: 2px solid #d1d6ee;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #182848;
+        }
+        
+        .method-btn:hover {
+            background-color: #e8ecff;
+            border-color: #4b6cb7;
+            transform: translateY(-2px);
+        }
+        
+        .method-btn.active {
+            background-color: #4b6cb7;
+            border-color: #4b6cb7;
+            color: white;
+        }
+        
+        .method-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
         .upload-area {
             border: 3px dashed #4b6cb7;
             border-radius: 10px;
@@ -101,6 +138,109 @@
         
         .file-input {
             display: none;
+        }
+        
+        .screenshot-area {
+            border: 3px dashed #2ecc71;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #f0fff4;
+            transition: all 0.3s;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+        
+        .screenshot-area:hover {
+            background-color: #e1ffe8;
+            border-color: #27ae60;
+        }
+        
+        .screenshot-icon {
+            font-size: 3rem;
+            color: #2ecc71;
+            margin-bottom: 15px;
+        }
+        
+        .screenshot-text {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .screenshot-instructions {
+            background-color: #e8f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        
+        .screenshot-instructions h4 {
+            margin-bottom: 8px;
+            color: #182848;
+        }
+        
+        .screenshot-instructions ol {
+            padding-left: 20px;
+        }
+        
+        .screenshot-instructions li {
+            margin-bottom: 5px;
+        }
+        
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .countdown-number {
+            font-size: 8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #4b6cb7;
+            text-shadow: 0 0 20px rgba(76, 108, 183, 0.8);
+            animation: pulse 1s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        .countdown-text {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        
+        .countdown-cancel {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .countdown-cancel:hover {
+            background-color: #c0392b;
         }
         
         .controls {
@@ -184,6 +324,10 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }
+        
+        .screenshot-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
         }
         
         .preview-container {
@@ -286,8 +430,20 @@
                 flex-direction: column;
             }
             
+            .input-methods {
+                flex-direction: column;
+            }
+            
             h1 {
                 font-size: 1.8rem;
+            }
+            
+            .countdown-number {
+                font-size: 5rem;
+            }
+            
+            .countdown-text {
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -295,19 +451,52 @@
 <body>
     <div class="container">
         <header>
-            <h1>Achtergrond Verwijderaar</h1>
-            <p class="subtitle">Verwijder witte achtergronden en snij afbeeldingen automatisch bij met 0,5 cm marge</p>
+            <h1>Achtergrond Verwijderaar met Screenshot</h1>
+            <p class="subtitle">Upload een afbeelding of maak een screenshot van je scherm om de achtergrond te verwijderen</p>
         </header>
         
         <div class="main-content">
             <div class="upload-section">
-                <h2 class="section-title">1. Upload Afbeelding</h2>
+                <h2 class="section-title">1. Kies Invoermethode</h2>
                 
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📁</div>
-                    <p class="upload-text">Sleep je afbeelding hierheen of klik om te uploaden</p>
-                    <p>Ondersteunde formaten: JPG, PNG, WebP</p>
-                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                <div class="input-methods">
+                    <div class="method-btn active" id="uploadMethodBtn">
+                        <span class="method-icon">📁</span>
+                        Upload Bestand
+                    </div>
+                    <div class="method-btn" id="screenshotMethodBtn">
+                        <span class="method-icon">📸</span>
+                        Screenshot
+                    </div>
+                </div>
+                
+                <div id="uploadSection">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Sleep je afbeelding hierheen of klik om te uploaden</p>
+                        <p>Ondersteunde formaten: JPG, PNG, WebP</p>
+                        <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    </div>
+                </div>
+                
+                <div id="screenshotSection" class="hidden">
+                    <div class="screenshot-area" id="screenshotArea">
+                        <div class="screenshot-icon">📸</div>
+                        <p class="screenshot-text">Klik hier om een screenshot te maken van je scherm</p>
+                        <p>Je kunt je volledige scherm, een applicatie of een browsertabblad selecteren</p>
+                        
+                        <div class="screenshot-instructions">
+                            <h4>Hoe het werkt:</h4>
+                            <ol>
+                                <li>Klik op de knop "Start Screenshot"</li>
+                                <li>Er wordt een 3-seconden teller getoond</li>
+                                <li>Selecteer het scherm of venster dat je wilt vastleggen</li>
+                                <li>De screenshot wordt automatisch geladen in de applicatie</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <button id="startScreenshotBtn" class="button screenshot-btn">Start Screenshot</button>
                 </div>
                 
                 <div class="controls">
@@ -336,11 +525,16 @@
                 <div class="info-box">
                     <div class="info-title">Hoe het werkt:</div>
                     <div class="info-text">
+                        <p><strong>Upload methode:</strong></p>
                         <p>1. Upload een afbeelding met een witte achtergrond</p>
                         <p>2. Pas de gevoeligheid aan voor het herkennen van wit</p>
                         <p>3. Klik op "Achtergrond verwijderen en bijsnijden"</p>
-                        <p>4. Het resultaat wordt automatisch bijgesneden met 0,5 cm marge rondom</p>
-                        <p>5. Download het resultaat als PNG met transparante achtergrond</p>
+                        
+                        <p style="margin-top: 10px;"><strong>Screenshot methode:</strong></p>
+                        <p>1. Start de screenshot functie</p>
+                        <p>2. Kies welk scherm/venster je wilt vastleggen</p>
+                        <p>3. De screenshot wordt automatisch geladen</p>
+                        <p>4. Verwijder de achtergrond en download het resultaat</p>
                     </div>
                 </div>
             </div>
@@ -353,7 +547,7 @@
                         <h3 style="margin-bottom: 10px; color: #182848;">Origineel</h3>
                         <div class="image-container">
                             <div class="image-placeholder" id="originalPlaceholder">
-                                <p>Geüploade afbeelding verschijnt hier</p>
+                                <p>Geüploade afbeelding of screenshot verschijnt hier</p>
                             </div>
                             <canvas id="originalCanvas"></canvas>
                         </div>
@@ -381,21 +575,34 @@
                         <p>• Gebruik afbeeldingen met een effen witte achtergrond voor beste resultaten</p>
                         <p>• Pas de gevoeligheid aan als te veel of te weinig wordt verwijderd</p>
                         <p>• De afbeelding wordt automatisch bijgesneden met de opgegeven marge</p>
-                        <p>• Het resultaat wordt opgeslagen als PNG met transparante achtergrond</p>
+                        <p>• Screenshots zijn ideaal voor het vastleggen van webpagina's of applicaties</p>
                     </div>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>Achtergrond Verwijderaar &copy; 2023 | Werkt volledig in je browser - geen upload naar servers</p>
+            <p>Achtergrond Verwijderaar met Screenshot &copy; 2023 | Werkt volledig in je browser - geen upload naar servers</p>
         </footer>
+    </div>
+
+    <!-- Countdown overlay voor screenshot -->
+    <div id="countdownOverlay" class="countdown-overlay hidden">
+        <div class="countdown-number" id="countdownNumber">3</div>
+        <div class="countdown-text" id="countdownText">Screenshot over 3 seconden...<br>Selecteer het scherm of venster dat je wilt vastleggen</div>
+        <button class="countdown-cancel" id="cancelScreenshotBtn">Annuleren</button>
     </div>
 
     <script>
         // DOM elementen
         const fileInput = document.getElementById('fileInput');
         const uploadArea = document.getElementById('uploadArea');
+        const uploadMethodBtn = document.getElementById('uploadMethodBtn');
+        const screenshotMethodBtn = document.getElementById('screenshotMethodBtn');
+        const uploadSection = document.getElementById('uploadSection');
+        const screenshotSection = document.getElementById('screenshotSection');
+        const screenshotArea = document.getElementById('screenshotArea');
+        const startScreenshotBtn = document.getElementById('startScreenshotBtn');
         const thresholdSlider = document.getElementById('threshold');
         const thresholdValue = document.getElementById('thresholdValue');
         const marginSlider = document.getElementById('margin');
@@ -409,13 +616,25 @@
         const originalPlaceholder = document.getElementById('originalPlaceholder');
         const resultPlaceholder = document.getElementById('resultPlaceholder');
         const loadingIndicator = document.getElementById('loadingIndicator');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownNumber = document.getElementById('countdownNumber');
+        const countdownText = document.getElementById('countdownText');
+        const cancelScreenshotBtn = document.getElementById('cancelScreenshotBtn');
         
         // Variabelen
         let originalImage = null;
         let processedImage = null;
+        let currentMethod = 'upload'; // 'upload' of 'screenshot'
+        let countdownInterval = null;
+        let countdownValue = 3;
+        let mediaStream = null;
         const dpi = 96; // Standaard DPI voor schermen (wordt gebruikt voor cm naar pixel conversie)
         
-        // Event listeners
+        // Event listeners voor methode selectie
+        uploadMethodBtn.addEventListener('click', () => switchMethod('upload'));
+        screenshotMethodBtn.addEventListener('click', () => switchMethod('screenshot'));
+        
+        // Event listeners voor upload
         uploadArea.addEventListener('click', () => fileInput.click());
         
         uploadArea.addEventListener('dragover', (e) => {
@@ -443,6 +662,12 @@
             }
         });
         
+        // Event listeners voor screenshot
+        screenshotArea.addEventListener('click', startScreenshot);
+        startScreenshotBtn.addEventListener('click', startScreenshot);
+        cancelScreenshotBtn.addEventListener('click', cancelScreenshot);
+        
+        // Event listeners voor instellingen
         thresholdSlider.addEventListener('input', () => {
             thresholdValue.textContent = thresholdSlider.value;
         });
@@ -451,56 +676,171 @@
             marginValue.textContent = marginSlider.value;
         });
         
+        // Event listeners voor verwerking en download
         processBtn.addEventListener('click', processImage);
         downloadBtn.addEventListener('click', downloadResult);
         
         // Functies
+        function switchMethod(method) {
+            currentMethod = method;
+            
+            // Update UI
+            if (method === 'upload') {
+                uploadMethodBtn.classList.add('active');
+                screenshotMethodBtn.classList.remove('active');
+                uploadSection.classList.remove('hidden');
+                screenshotSection.classList.add('hidden');
+            } else {
+                uploadMethodBtn.classList.remove('active');
+                screenshotMethodBtn.classList.add('active');
+                uploadSection.classList.add('hidden');
+                screenshotSection.classList.remove('hidden');
+            }
+        }
+        
         function handleImageUpload(file) {
             const reader = new FileReader();
             
             reader.onload = function(e) {
-                originalImage = new Image();
-                originalImage.onload = function() {
-                    // Toon originele afbeelding
-                    originalPlaceholder.classList.add('hidden');
-                    originalCanvas.classList.remove('hidden');
-                    
-                    // Pas canvas grootte aan aan afbeelding (met maximale grootte)
-                    const maxWidth = 500;
-                    const maxHeight = 400;
-                    let width = originalImage.width;
-                    let height = originalImage.height;
-                    
-                    if (width > maxWidth) {
-                        height = (maxWidth / width) * height;
-                        width = maxWidth;
-                    }
-                    
-                    if (height > maxHeight) {
-                        width = (maxHeight / height) * width;
-                        height = maxHeight;
-                    }
-                    
-                    originalCanvas.width = width;
-                    originalCanvas.height = height;
-                    
-                    // Teken de afbeelding op het canvas
-                    originalCtx.drawImage(originalImage, 0, 0, width, height);
-                    
-                    // Reset resultaat
-                    resultPlaceholder.classList.remove('hidden');
-                    resultCanvas.classList.add('hidden');
-                    downloadBtn.classList.add('hidden');
-                };
-                originalImage.src = e.target.result;
+                loadImageFromDataUrl(e.target.result);
             };
             
             reader.readAsDataURL(file);
         }
         
+        function loadImageFromDataUrl(dataUrl) {
+            originalImage = new Image();
+            originalImage.onload = function() {
+                // Toon originele afbeelding
+                originalPlaceholder.classList.add('hidden');
+                originalCanvas.classList.remove('hidden');
+                
+                // Pas canvas grootte aan aan afbeelding (met maximale grootte)
+                const maxWidth = 500;
+                const maxHeight = 400;
+                let width = originalImage.width;
+                let height = originalImage.height;
+                
+                if (width > maxWidth) {
+                    height = (maxWidth / width) * height;
+                    width = maxWidth;
+                }
+                
+                if (height > maxHeight) {
+                    width = (maxHeight / height) * width;
+                    height = maxHeight;
+                }
+                
+                originalCanvas.width = width;
+                originalCanvas.height = height;
+                
+                // Teken de afbeelding op het canvas
+                originalCtx.drawImage(originalImage, 0, 0, width, height);
+                
+                // Reset resultaat
+                resultPlaceholder.classList.remove('hidden');
+                resultCanvas.classList.add('hidden');
+                downloadBtn.classList.add('hidden');
+            };
+            originalImage.src = dataUrl;
+        }
+        
+        function startScreenshot() {
+            // Start de countdown
+            countdownValue = 3;
+            countdownNumber.textContent = countdownValue;
+            countdownOverlay.classList.remove('hidden');
+            
+            // Start countdown timer
+            countdownInterval = setInterval(() => {
+                countdownValue--;
+                countdownNumber.textContent = countdownValue;
+                
+                if (countdownValue <= 0) {
+                    clearInterval(countdownInterval);
+                    captureScreenshot();
+                }
+            }, 1000);
+        }
+        
+        function cancelScreenshot() {
+            clearInterval(countdownInterval);
+            countdownOverlay.classList.add('hidden');
+        }
+        
+        async function captureScreenshot() {
+            countdownText.textContent = "Scherm selecteren...";
+            
+            try {
+                // Vraag toestemming voor schermopname
+                const displayMediaOptions = {
+                    video: {
+                        displaySurface: "window", // "screen", "window", of "browser"
+                        cursor: "never" // "always", "motion", of "never"
+                    },
+                    audio: false,
+                    preferCurrentTab: false // Toon alle tabbladen/vensters
+                };
+                
+                // Vraag de gebruiker om een scherm of venster te selecteren
+                mediaStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+                
+                // Verberg de countdown overlay
+                countdownOverlay.classList.add('hidden');
+                
+                // Maak een video element om de stream af te spelen
+                const video = document.createElement('video');
+                video.srcObject = mediaStream;
+                
+                // Wacht tot de video geladen is
+                video.onloadedmetadata = () => {
+                    video.play();
+                    
+                    // Wacht even om zeker te zijn dat de video speelt
+                    setTimeout(() => {
+                        // Maak een canvas om de video frame vast te leggen
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = video.videoWidth;
+                        tempCanvas.height = video.videoHeight;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        
+                        // Teken het huidige video frame op het canvas
+                        tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                        
+                        // Converteer naar data URL en laad als afbeelding
+                        const screenshotDataUrl = tempCanvas.toDataURL('image/png');
+                        loadImageFromDataUrl(screenshotDataUrl);
+                        
+                        // Stop de mediastream
+                        stopMediaStream();
+                    }, 100);
+                };
+                
+            } catch (error) {
+                console.error('Fout bij screenshot:', error);
+                countdownOverlay.classList.add('hidden');
+                
+                if (error.name === 'NotAllowedError') {
+                    alert('Schermopname werd geweigerd. Zorg ervoor dat je toegang geeft tot schermopname.');
+                } else {
+                    alert('Er is een fout opgetreden bij het maken van de screenshot: ' + error.message);
+                }
+                
+                // Stop de mediastream als die actief is
+                stopMediaStream();
+            }
+        }
+        
+        function stopMediaStream() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        }
+        
         function processImage() {
             if (!originalImage) {
-                alert('Upload eerst een afbeelding!');
+                alert('Upload eerst een afbeelding of maak een screenshot!');
                 return;
             }
             
