@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achtergrond Verwijderaar met Bijsnijden</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #4b6cb7, #182848);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 30px;
+            gap: 30px;
+        }
+        
+        .upload-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .preview-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4b6cb7;
+            color: #182848;
+        }
+        
+        .upload-area {
+            border: 3px dashed #4b6cb7;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #f8f9ff;
+            transition: all 0.3s;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover, .upload-area.highlight {
+            background-color: #e8ecff;
+            border-color: #182848;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #4b6cb7;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .controls {
+            background-color: #f8f9ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #182848;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #d1d6ee;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #4b6cb7;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider-value {
+            font-weight: 600;
+            color: #182848;
+            min-width: 40px;
+        }
+        
+        .button {
+            display: inline-block;
+            background: linear-gradient(to right, #4b6cb7, #182848);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .button:active {
+            transform: translateY(-1px);
+        }
+        
+        .button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .image-container {
+            border: 2px solid #e0e5f0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f8f9ff;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .image-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7a8bb8;
+        }
+        
+        canvas {
+            max-width: 100%;
+            max-height: 400px;
+            display: block;
+        }
+        
+        .info-box {
+            background-color: #e8f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4b6cb7;
+            margin-top: 20px;
+        }
+        
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #182848;
+        }
+        
+        .info-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .download-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            margin-top: 15px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 8px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e0e5f0;
+            border-top: 5px solid #4b6cb7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #7a8bb8;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e5f0;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Achtergrond Verwijderaar</h1>
+            <p class="subtitle">Verwijder witte achtergronden en snij afbeeldingen automatisch bij met 0,5 cm marge</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="upload-section">
+                <h2 class="section-title">1. Upload Afbeelding</h2>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p class="upload-text">Sleep je afbeelding hierheen of klik om te uploaden</p>
+                    <p>Ondersteunde formaten: JPG, PNG, WebP</p>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                </div>
+                
+                <div class="controls">
+                    <h2 class="section-title">2. Instellingen</h2>
+                    
+                    <div class="control-group">
+                        <label for="threshold">Wit-herkenningsgevoeligheid</label>
+                        <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;">Hoger = alleen zeer wit wordt verwijderd, Lager = meer tinten worden als wit gezien</p>
+                        <div class="slider-container">
+                            <input type="range" min="200" max="254" value="240" class="slider" id="threshold">
+                            <span class="slider-value" id="thresholdValue">240</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="margin">Marge rondom bijsnijden (in cm)</label>
+                        <div class="slider-container">
+                            <input type="range" min="0.1" max="2" step="0.1" value="0.5" class="slider" id="margin">
+                            <span class="slider-value" id="marginValue">0.5</span>
+                        </div>
+                    </div>
+                    
+                    <button id="processBtn" class="button">Achtergrond verwijderen en bijsnijden</button>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">Hoe het werkt:</div>
+                    <div class="info-text">
+                        <p>1. Upload een afbeelding met een witte achtergrond</p>
+                        <p>2. Pas de gevoeligheid aan voor het herkennen van wit</p>
+                        <p>3. Klik op "Achtergrond verwijderen en bijsnijden"</p>
+                        <p>4. Het resultaat wordt automatisch bijgesneden met 0,5 cm marge rondom</p>
+                        <p>5. Download het resultaat als PNG met transparante achtergrond</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <h2 class="section-title">3. Voorbeeld & Resultaat</h2>
+                
+                <div class="preview-container">
+                    <div>
+                        <h3 style="margin-bottom: 10px; color: #182848;">Origineel</h3>
+                        <div class="image-container">
+                            <div class="image-placeholder" id="originalPlaceholder">
+                                <p>Geüploade afbeelding verschijnt hier</p>
+                            </div>
+                            <canvas id="originalCanvas"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 10px; color: #182848;">Resultaat (transparant + bijgesneden)</h3>
+                        <div class="image-container">
+                            <div class="image-placeholder" id="resultPlaceholder">
+                                <p>Resultaat verschijnt hier na verwerking</p>
+                            </div>
+                            <canvas id="resultCanvas"></canvas>
+                            <div class="loading hidden" id="loadingIndicator">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="downloadBtn" class="button download-btn hidden">Download PNG Resultaat</button>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-title">Tips voor beste resultaten:</div>
+                    <div class="info-text">
+                        <p>• Gebruik afbeeldingen met een effen witte achtergrond voor beste resultaten</p>
+                        <p>• Pas de gevoeligheid aan als te veel of te weinig wordt verwijderd</p>
+                        <p>• De afbeelding wordt automatisch bijgesneden met de opgegeven marge</p>
+                        <p>• Het resultaat wordt opgeslagen als PNG met transparante achtergrond</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Achtergrond Verwijderaar &copy; 2023 | Werkt volledig in je browser - geen upload naar servers</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM elementen
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const thresholdSlider = document.getElementById('threshold');
+        const thresholdValue = document.getElementById('thresholdValue');
+        const marginSlider = document.getElementById('margin');
+        const marginValue = document.getElementById('marginValue');
+        const processBtn = document.getElementById('processBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const originalCtx = originalCanvas.getContext('2d');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const resultCtx = resultCanvas.getContext('2d');
+        const originalPlaceholder = document.getElementById('originalPlaceholder');
+        const resultPlaceholder = document.getElementById('resultPlaceholder');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        
+        // Variabelen
+        let originalImage = null;
+        let processedImage = null;
+        const dpi = 96; // Standaard DPI voor schermen (wordt gebruikt voor cm naar pixel conversie)
+        
+        // Event listeners
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('highlight');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('highlight');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('highlight');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleImageUpload(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleImageUpload(e.target.files[0]);
+            }
+        });
+        
+        thresholdSlider.addEventListener('input', () => {
+            thresholdValue.textContent = thresholdSlider.value;
+        });
+        
+        marginSlider.addEventListener('input', () => {
+            marginValue.textContent = marginSlider.value;
+        });
+        
+        processBtn.addEventListener('click', processImage);
+        downloadBtn.addEventListener('click', downloadResult);
+        
+        // Functies
+        function handleImageUpload(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                originalImage = new Image();
+                originalImage.onload = function() {
+                    // Toon originele afbeelding
+                    originalPlaceholder.classList.add('hidden');
+                    originalCanvas.classList.remove('hidden');
+                    
+                    // Pas canvas grootte aan aan afbeelding (met maximale grootte)
+                    const maxWidth = 500;
+                    const maxHeight = 400;
+                    let width = originalImage.width;
+                    let height = originalImage.height;
+                    
+                    if (width > maxWidth) {
+                        height = (maxWidth / width) * height;
+                        width = maxWidth;
+                    }
+                    
+                    if (height > maxHeight) {
+                        width = (maxHeight / height) * width;
+                        height = maxHeight;
+                    }
+                    
+                    originalCanvas.width = width;
+                    originalCanvas.height = height;
+                    
+                    // Teken de afbeelding op het canvas
+                    originalCtx.drawImage(originalImage, 0, 0, width, height);
+                    
+                    // Reset resultaat
+                    resultPlaceholder.classList.remove('hidden');
+                    resultCanvas.classList.add('hidden');
+                    downloadBtn.classList.add('hidden');
+                };
+                originalImage.src = e.target.result;
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function processImage() {
+            if (!originalImage) {
+                alert('Upload eerst een afbeelding!');
+                return;
+            }
+            
+            // Toon laadindicator
+            loadingIndicator.classList.remove('hidden');
+            processBtn.disabled = true;
+            
+            // Geef de browser even tijd om de UI te updaten
+            setTimeout(() => {
+                try {
+                    // Bereken marge in pixels (cm naar pixels: cm * dpi / 2.54)
+                    const marginCm = parseFloat(marginSlider.value);
+                    const marginPx = Math.round(marginCm * dpi / 2.54);
+                    
+                    // Maak een tijdelijk canvas voor de volledige grootte verwerking
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    
+                    // Gebruik de originele afbeelding afmetingen (niet de weergave afmetingen)
+                    tempCanvas.width = originalImage.width;
+                    tempCanvas.height = originalImage.height;
+                    tempCtx.drawImage(originalImage, 0, 0);
+                    
+                    // Verwijder de achtergrond en krijg de bijgesneden bounds
+                    const result = removeBackgroundAndCrop(tempCanvas, tempCtx, parseInt(thresholdSlider.value), marginPx);
+                    
+                    // Toon het resultaat
+                    resultPlaceholder.classList.add('hidden');
+                    resultCanvas.classList.remove('hidden');
+                    
+                    // Stel de canvas grootte in op de bijgesneden grootte
+                    resultCanvas.width = result.width;
+                    resultCanvas.height = result.height;
+                    
+                    // Teken het bijgesneden beeld op het resultaat canvas
+                    resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+                    resultCtx.drawImage(result.canvas, 0, 0);
+                    
+                    // Sla de verwerkte afbeelding op voor download
+                    processedImage = resultCanvas.toDataURL('image/png');
+                    
+                    // Toon de download knop
+                    downloadBtn.classList.remove('hidden');
+                    
+                } catch (error) {
+                    console.error('Fout bij verwerken:', error);
+                    alert('Er is een fout opgetreden bij het verwerken van de afbeelding.');
+                } finally {
+                    // Verberg laadindicator
+                    loadingIndicator.classList.add('hidden');
+                    processBtn.disabled = false;
+                }
+            }, 50);
+        }
+        
+        function removeBackgroundAndCrop(canvas, ctx, threshold, margin) {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Haal de image data op
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            
+            // Initialiseer bounds (links, rechts, boven, onder)
+            let left = width;
+            let right = 0;
+            let top = height;
+            let bottom = 0;
+            
+            // Vind de bounds van niet-witte pixels
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = (y * width + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    
+                    // Controleer of de pixel niet wit is (boven de drempel)
+                    if (r < threshold || g < threshold || b < threshold) {
+                        // Update bounds
+                        if (x < left) left = x;
+                        if (x > right) right = x;
+                        if (y < top) top = y;
+                        if (y > bottom) bottom = y;
+                    }
+                }
+            }
+            
+            // Als er geen niet-witte pixels zijn gevonden, gebruik dan de hele afbeelding
+            if (left > right || top > bottom) {
+                left = 0;
+                right = width - 1;
+                top = 0;
+                bottom = height - 1;
+            }
+            
+            // Voeg marge toe
+            left = Math.max(0, left - margin);
+            right = Math.min(width - 1, right + margin);
+            top = Math.max(0, top - margin);
+            bottom = Math.min(height - 1, bottom + margin);
+            
+            // Bereken de nieuwe breedte en hoogte
+            const cropWidth = right - left + 1;
+            const cropHeight = bottom - top + 1;
+            
+            // Maak een nieuw canvas voor het bijgesneden resultaat
+            const croppedCanvas = document.createElement('canvas');
+            croppedCanvas.width = cropWidth;
+            croppedCanvas.height = cropHeight;
+            const croppedCtx = croppedCanvas.getContext('2d');
+            
+            // Kopieer het bijgesneden gebied naar het nieuwe canvas
+            croppedCtx.drawImage(canvas, left, top, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            
+            // Verwijder nu de achtergrond van het bijgesneden gebied
+            const croppedImageData = croppedCtx.getImageData(0, 0, cropWidth, cropHeight);
+            const croppedData = croppedImageData.data;
+            
+            for (let i = 0; i < croppedData.length; i += 4) {
+                const r = croppedData[i];
+                const g = croppedData[i + 1];
+                const b = croppedData[i + 2];
+                
+                // Als de pixel wit is (boven de drempel), maak hem transparant
+                if (r >= threshold && g >= threshold && b >= threshold) {
+                    croppedData[i + 3] = 0; // Alpha op 0 voor transparantie
+                }
+            }
+            
+            // Plaats de verwerkte image data terug op het canvas
+            croppedCtx.putImageData(croppedImageData, 0, 0);
+            
+            return {
+                canvas: croppedCanvas,
+                width: cropWidth,
+                height: cropHeight,
+                bounds: { left, top, right, bottom }
+            };
+        }
+        
+        function downloadResult() {
+            if (!processedImage) return;
+            
+            const link = document.createElement('a');
+            link.download = 'achtergrond-verwijderd.png';
+            link.href = processedImage;
+            link.click();
+        }
+        
+        // Initialiseer de weergave van slider waarden
+        thresholdValue.textContent = thresholdSlider.value;
+        marginValue.textContent = marginSlider.value;
+    </script>
+</body>
+</html>
