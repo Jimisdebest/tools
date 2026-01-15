@@ -5,12 +5,206 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Achtergrond Toevoegen aan Afbeelding</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Popup styling */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .popup-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4b6cb7;
+        }
+        
+        .popup-title {
+            font-size: 1.8rem;
+            color: #182848;
+            margin: 0;
+        }
+        
+        .close-popup {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .close-popup:hover {
+            background-color: #f0f0f0;
+            color: #182848;
+        }
+        
+        .positioning-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .positioning-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border: 2px solid #e0e5f0;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #f8f9ff;
+        }
+        
+        #positionCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: move;
+        }
+        
+        .position-controls {
+            background-color: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn {
+            background-color: #4b6cb7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background-color: #3a5aa3;
+            transform: translateY(-2px);
+        }
+        
+        .control-btn.reset {
+            background-color: #e74c3c;
+        }
+        
+        .control-btn.reset:hover {
+            background-color: #c0392b;
+        }
+        
+        .control-btn.download {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+        
+        .control-btn.download:hover {
+            background: linear-gradient(to right, #27ae60, #219653);
+        }
+        
+        .slider-control {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .slider-control label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #182848;
+        }
+        
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .size-value {
+            min-width: 60px;
+            font-weight: 600;
+            color: #182848;
+        }
+        
+        .instructions-popup {
+            background-color: #e8f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4b6cb7;
+            margin-top: 10px;
+        }
+        
+        .instructions-popup h4 {
+            color: #182848;
+            margin-bottom: 8px;
+        }
+        
+        .instructions-popup p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .position-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .slider-control {
+                min-width: 100%;
+            }
+            
+            .popup-content {
+                padding: 15px;
+            }
+            
+            .positioning-canvas-container {
+                height: 400px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Achtergrond Toevoegen aan Afbeelding</h1>
-            <p class="subtitle">Upload een afbeelding zonder achtergrond en een achtergrondafbeelding - combineer ze en download het resultaat</p>
+            <p class="subtitle">Upload een afbeelding zonder achtergrond en een achtergrondafbeelding - positioneer en download het resultaat</p>
         </header>
         
         <div class="main-content">
@@ -46,16 +240,16 @@
                     <canvas id="resultCanvas"></canvas>
                 </div>
                 
-                <div class="download-info" id="downloadInfo">
-                    <h4>✅ Afbeelding klaar voor download!</h4>
-                    <p>Je gecombineerde afbeelding is klaar. Klik op de knop hieronder om te downloaden.</p>
+                <div class="download-info" id="downloadInfo" style="display: none;">
+                    <h4>✅ Afbeelding klaar voor positionering!</h4>
+                    <p>Beide afbeeldingen zijn geüpload. Klik op de knop hieronder om de voorgrond te positioneren.</p>
                     <div class="manual-download">
-                        <button class="button download-btn" id="manualDownloadBtn">Download Afbeelding</button>
+                        <button class="button download-btn" id="positionBtn">Positioneer & Download</button>
                     </div>
                 </div>
                 
                 <div class="automatic-notice" id="readyNotice" style="display: none;">
-                    ✅ Beide afbeeldingen zijn geüpload! Klik op "Download Afbeelding" om het resultaat te downloaden.
+                    ✅ Beide afbeeldingen zijn geüpload! Klik op "Positioneer & Download" om het resultaat aan te passen en te downloaden.
                 </div>
             </div>
             
@@ -65,10 +259,10 @@
                     <ol style="padding-left: 20px;">
                         <li><strong>Upload een voorgrondafbeelding</strong> zonder achtergrond (PNG met transparantie werkt het beste).</li>
                         <li><strong>Upload een achtergrondafbeelding</strong> waar je achter de voorgrondafbeelding wilt plaatsen.</li>
-                        <li><strong>Voorbeeld bekijken:</strong> Het voorbeeld wordt direct getoond zodra beide afbeeldingen zijn geüpload.</li>
-                        <li><strong>Download:</strong> Klik op de download knop om het resultaat op te slaan op je computer.</li>
+                        <li><strong>Positioneer:</strong> Klik op "Positioneer & Download" om de voorgrond te verplaatsen en groter/kleiner te maken.</li>
+                        <li><strong>Download:</strong> Pas de voorgrond aan zoals je wilt en klik op "Klaar & Download" om het resultaat op te slaan.</li>
                     </ol>
-                    <p style="margin-top: 15px;"><strong>Tip:</strong> Voor het beste resultaat, gebruik een PNG-afbeelding met transparante achtergrond als voorgrond.</p>
+                    <p style="margin-top: 15px;"><strong>Tip:</strong> In de popup kun je de voorgrondafbeelding slepen om te verplaatsen en de grootte aanpassen met de schuifregelaar.</p>
                 </div>
             </div>
         </div>
@@ -76,6 +270,51 @@
         <footer>
             <p><a href="index.html" style="color: #4b6cb7; text-decoration: none;">← Terug naar startpagina</a> | Achtergrond Toevoegen &copy; 2023 | Werkt volledig in je browser</p>
         </footer>
+    </div>
+    
+    <!-- Popup voor positionering -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h2 class="popup-title">Positioneer Voorgrondafbeelding</h2>
+                <button class="close-popup" id="closePopup">×</button>
+            </div>
+            
+            <div class="positioning-container">
+                <div class="instructions-popup">
+                    <h4>Instructies:</h4>
+                    <p>• <strong>Slepen:</strong> Klik en sleep om de voorgrondafbeelding te verplaatsen</p>
+                    <p>• <strong>Grootte:</strong> Gebruik de schuifregelaar om de voorgrond groter of kleiner te maken</p>
+                    <p>• <strong>Reset:</strong> Klik op "Reset Positie" om terug te gaan naar de beginpositie</p>
+                </div>
+                
+                <div class="positioning-canvas-container">
+                    <canvas id="positionCanvas"></canvas>
+                </div>
+                
+                <div class="position-controls">
+                    <div class="slider-control">
+                        <label for="sizeSlider">Voorgrond Grootte</label>
+                        <div class="slider-row">
+                            <input type="range" min="10" max="200" value="80" class="slider" id="sizeSlider">
+                            <span class="size-value" id="sizeValue">80%</span>
+                        </div>
+                    </div>
+                    
+                    <button class="control-btn" id="centerBtn">
+                        <span>🔲</span> Centreer
+                    </button>
+                    
+                    <button class="control-btn reset" id="resetBtn">
+                        <span>🔄</span> Reset Positie
+                    </button>
+                    
+                    <button class="control-btn download" id="finalDownloadBtn">
+                        <span>⬇️</span> Klaar & Download
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -93,16 +332,37 @@
         const resultCanvas = document.getElementById('resultCanvas');
         const combineLoader = document.getElementById('combineLoader');
         const downloadInfo = document.getElementById('downloadInfo');
-        const manualDownloadBtn = document.getElementById('manualDownloadBtn');
+        const positionBtn = document.getElementById('positionBtn');
         const readyNotice = document.getElementById('readyNotice');
+        const popupOverlay = document.getElementById('popupOverlay');
+        const closePopup = document.getElementById('closePopup');
+        const positionCanvas = document.getElementById('positionCanvas');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeValue = document.getElementById('sizeValue');
+        const centerBtn = document.getElementById('centerBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const finalDownloadBtn = document.getElementById('finalDownloadBtn');
+        
         const ctx = resultCanvas.getContext('2d');
+        const positionCtx = positionCanvas.getContext('2d');
         
         // Variabelen om afbeeldingen op te slaan
         let foregroundImage = null;
         let backgroundImage = null;
         let combineInProgress = false;
-        let lastDownloadUrl = null;
-        let isExampleImage = true; // Track of we met voorbeeldafbeeldingen werken
+        let isExampleImage = true;
+        
+        // Variabelen voor positionering
+        let foregroundX = 0;
+        let foregroundY = 0;
+        let foregroundScale = 0.8;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let originalForegroundX = 0;
+        let originalForegroundY = 0;
+        let canvasWidth = 0;
+        let canvasHeight = 0;
         
         // Stel canvasgrootte in
         function setupCanvas() {
@@ -244,14 +504,14 @@
                     combineInProgress = false;
                     combineLoader.classList.remove('show');
                     
-                    // Toon downloadknop alleen als het GEEN voorbeeldafbeelding is
+                    // Toon positioneer knop alleen als het GEEN voorbeeldafbeelding is
                     if (!isExampleImage) {
                         downloadInfo.style.display = 'block';
                         readyNotice.style.display = 'block';
                     } else {
                         // Voor voorbeeldafbeeldingen, toon alleen de melding
                         readyNotice.style.display = 'block';
-                        readyNotice.innerHTML = "✅ Voorbeeld geladen! Upload nu je eigen afbeeldingen om te kunnen downloaden.";
+                        readyNotice.innerHTML = "✅ Voorbeeld geladen! Upload nu je eigen afbeeldingen om te kunnen positioneren en downloaden.";
                         readyNotice.style.backgroundColor = "rgba(255, 193, 7, 0.1)";
                         readyNotice.style.border = "1px solid #ffc107";
                         readyNotice.style.color = "#856404";
@@ -260,55 +520,312 @@
             }
         }
         
-        // Combineer de afbeeldingen
+        // Combineer de afbeeldingen (toon alleen voorbeeld)
         function combineImages() {
             if (!foregroundImage || !backgroundImage) return;
             
-            // Pas canvasgrootte aan aan de achtergrondafbeelding
-            resultCanvas.width = backgroundImage.width;
-            resultCanvas.height = backgroundImage.height;
-            
-            // Teken de achtergrond
-            ctx.drawImage(backgroundImage, 0, 0, resultCanvas.width, resultCanvas.height);
-            
             // Bereken de schaal voor de voorgrondafbeelding
             // We willen dat de voorgrondafbeelding goed past in het canvas
-            const scale = Math.min(
+            foregroundScale = Math.min(
                 resultCanvas.width / foregroundImage.width * 0.8,
                 resultCanvas.height / foregroundImage.height * 0.8
             );
             
-            const newWidth = foregroundImage.width * scale;
-            const newHeight = foregroundImage.height * scale;
+            const newWidth = foregroundImage.width * foregroundScale;
+            const newHeight = foregroundImage.height * foregroundScale;
             
             // Centreer de voorgrondafbeelding
-            const x = (resultCanvas.width - newWidth) / 2;
-            const y = (resultCanvas.height - newHeight) / 2;
+            foregroundX = (resultCanvas.width - newWidth) / 2;
+            foregroundY = (resultCanvas.height - newHeight) / 2;
             
-            // Teken de voorgrondafbeelding
-            ctx.drawImage(foregroundImage, x, y, newWidth, newHeight);
-            
-            // Maak download URL klaar, maar download niet automatisch
-            lastDownloadUrl = resultCanvas.toDataURL('image/png');
+            // Teken op het resultaat canvas
+            drawCombinedImage(resultCanvas, ctx);
         }
         
-        // Event listener voor handmatige downloadknop
-        manualDownloadBtn.addEventListener('click', () => {
-            if (lastDownloadUrl && !isExampleImage) {
-                downloadImage();
-            } else if (isExampleImage) {
-                showStatusMessage("Upload eerst je eigen afbeeldingen om te kunnen downloaden", true);
+        // Teken gecombineerde afbeelding op een canvas
+        function drawCombinedImage(canvas, context) {
+            if (!foregroundImage || !backgroundImage) return;
+            
+            // Pas canvasgrootte aan aan de achtergrondafbeelding
+            canvas.width = backgroundImage.width;
+            canvas.height = backgroundImage.height;
+            
+            // Teken de achtergrond
+            context.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            
+            // Bereken nieuwe grootte op basis van schaal
+            const newWidth = foregroundImage.width * foregroundScale;
+            const newHeight = foregroundImage.height * foregroundScale;
+            
+            // Teken de voorgrondafbeelding
+            context.drawImage(foregroundImage, foregroundX, foregroundY, newWidth, newHeight);
+        }
+        
+        // Event listener voor positioneer knop
+        positionBtn.addEventListener('click', () => {
+            if (!foregroundImage || !backgroundImage || isExampleImage) {
+                showStatusMessage("Upload eerst je eigen afbeeldingen om te kunnen positioneren", true);
+                return;
             }
+            
+            openPositioningPopup();
+        });
+        
+        // Open popup voor positionering
+        function openPositioningPopup() {
+            // Stel canvasgrootte in
+            canvasWidth = backgroundImage.width;
+            canvasHeight = backgroundImage.height;
+            
+            // Pas position canvas aan aan popup grootte
+            const containerWidth = document.querySelector('.positioning-canvas-container').clientWidth;
+            const containerHeight = document.querySelector('.positioning-canvas-container').clientHeight;
+            
+            // Bereken schaal om canvas in container te passen
+            const scaleX = containerWidth / canvasWidth;
+            const scaleY = containerHeight / canvasHeight;
+            const scale = Math.min(scaleX, scaleY, 1);
+            
+            positionCanvas.width = canvasWidth * scale;
+            positionCanvas.height = canvasHeight * scale;
+            
+            // Schaal ook de voorgrond positie
+            const scaledForegroundX = foregroundX * scale;
+            const scaledForegroundY = foregroundY * scale;
+            const scaledForegroundScale = foregroundScale * scale;
+            
+            // Teken afbeelding op position canvas
+            positionCtx.clearRect(0, 0, positionCanvas.width, positionCanvas.height);
+            positionCtx.drawImage(backgroundImage, 0, 0, positionCanvas.width, positionCanvas.height);
+            
+            // Teken voorgrond
+            const newWidth = foregroundImage.width * scaledForegroundScale;
+            const newHeight = foregroundImage.height * scaledForegroundScale;
+            positionCtx.drawImage(foregroundImage, scaledForegroundX, scaledForegroundY, newWidth, newHeight);
+            
+            // Stel slider in
+            sizeSlider.value = foregroundScale * 100;
+            sizeValue.textContent = Math.round(foregroundScale * 100) + "%";
+            
+            // Toon popup
+            popupOverlay.style.display = 'flex';
+            
+            // Voeg event listeners toe voor slepen
+            setupDragging();
+        }
+        
+        // Sluit popup
+        closePopup.addEventListener('click', () => {
+            popupOverlay.style.display = 'none';
+        });
+        
+        // Sluit popup als er buiten geklikt wordt
+        popupOverlay.addEventListener('click', (e) => {
+            if (e.target === popupOverlay) {
+                popupOverlay.style.display = 'none';
+            }
+        });
+        
+        // Stel slepen functionaliteit in
+        function setupDragging() {
+            positionCanvas.addEventListener('mousedown', startDragging);
+            positionCanvas.addEventListener('touchstart', startDraggingTouch);
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', dragTouch);
+            
+            document.addEventListener('mouseup', stopDragging);
+            document.addEventListener('touchend', stopDragging);
+        }
+        
+        // Start slepen (muis)
+        function startDragging(e) {
+            const rect = positionCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Controleer of er op de voorgrondafbeelding wordt geklikt
+            const scaleFactor = positionCanvas.width / canvasWidth;
+            const scaledForegroundWidth = foregroundImage.width * foregroundScale * scaleFactor;
+            const scaledForegroundHeight = foregroundImage.height * foregroundScale * scaleFactor;
+            const scaledForegroundX = foregroundX * scaleFactor;
+            const scaledForegroundY = foregroundY * scaleFactor;
+            
+            if (x >= scaledForegroundX && x <= scaledForegroundX + scaledForegroundWidth &&
+                y >= scaledForegroundY && y <= scaledForegroundY + scaledForegroundHeight) {
+                isDragging = true;
+                dragStartX = x;
+                dragStartY = y;
+                originalForegroundX = foregroundX;
+                originalForegroundY = foregroundY;
+                positionCanvas.style.cursor = 'grabbing';
+            }
+        }
+        
+        // Start slepen (touch)
+        function startDraggingTouch(e) {
+            if (e.touches.length === 1) {
+                const rect = positionCanvas.getBoundingClientRect();
+                const x = e.touches[0].clientX - rect.left;
+                const y = e.touches[0].clientY - rect.top;
+                
+                // Controleer of er op de voorgrondafbeelding wordt geklikt
+                const scaleFactor = positionCanvas.width / canvasWidth;
+                const scaledForegroundWidth = foregroundImage.width * foregroundScale * scaleFactor;
+                const scaledForegroundHeight = foregroundImage.height * foregroundScale * scaleFactor;
+                const scaledForegroundX = foregroundX * scaleFactor;
+                const scaledForegroundY = foregroundY * scaleFactor;
+                
+                if (x >= scaledForegroundX && x <= scaledForegroundX + scaledForegroundWidth &&
+                    y >= scaledForegroundY && y <= scaledForegroundY + scaledForegroundHeight) {
+                    e.preventDefault();
+                    isDragging = true;
+                    dragStartX = x;
+                    dragStartY = y;
+                    originalForegroundX = foregroundX;
+                    originalForegroundY = foregroundY;
+                    positionCanvas.style.cursor = 'grabbing';
+                }
+            }
+        }
+        
+        // Slepen (muis)
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const rect = positionCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const scaleFactor = canvasWidth / positionCanvas.width;
+            const dx = (x - dragStartX) * scaleFactor;
+            const dy = (y - dragStartY) * scaleFactor;
+            
+            foregroundX = originalForegroundX + dx;
+            foregroundY = originalForegroundY + dy;
+            
+            updatePositionCanvas();
+        }
+        
+        // Slepen (touch)
+        function dragTouch(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+            
+            e.preventDefault();
+            const rect = positionCanvas.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            const y = e.touches[0].clientY - rect.top;
+            
+            const scaleFactor = canvasWidth / positionCanvas.width;
+            const dx = (x - dragStartX) * scaleFactor;
+            const dy = (y - dragStartY) * scaleFactor;
+            
+            foregroundX = originalForegroundX + dx;
+            foregroundY = originalForegroundY + dy;
+            
+            updatePositionCanvas();
+        }
+        
+        // Stop slepen
+        function stopDragging() {
+            isDragging = false;
+            positionCanvas.style.cursor = 'move';
+        }
+        
+        // Update position canvas
+        function updatePositionCanvas() {
+            // Teken opnieuw
+            const scale = positionCanvas.width / canvasWidth;
+            
+            positionCtx.clearRect(0, 0, positionCanvas.width, positionCanvas.height);
+            positionCtx.drawImage(backgroundImage, 0, 0, positionCanvas.width, positionCanvas.height);
+            
+            const scaledForegroundWidth = foregroundImage.width * foregroundScale * scale;
+            const scaledForegroundHeight = foregroundImage.height * foregroundScale * scale;
+            const scaledForegroundX = foregroundX * scale;
+            const scaledForegroundY = foregroundY * scale;
+            
+            positionCtx.drawImage(foregroundImage, scaledForegroundX, scaledForegroundY, scaledForegroundWidth, scaledForegroundHeight);
+            
+            // Update ook het voorbeeld op de hoofdpagina
+            drawCombinedImage(resultCanvas, ctx);
+        }
+        
+        // Event listener voor grootte slider
+        sizeSlider.addEventListener('input', () => {
+            foregroundScale = sizeSlider.value / 100;
+            sizeValue.textContent = sizeSlider.value + "%";
+            updatePositionCanvas();
+        });
+        
+        // Event listener voor centreer knop
+        centerBtn.addEventListener('click', () => {
+            // Bereken nieuwe grootte
+            const newWidth = foregroundImage.width * foregroundScale;
+            const newHeight = foregroundImage.height * foregroundScale;
+            
+            // Centreer
+            foregroundX = (canvasWidth - newWidth) / 2;
+            foregroundY = (canvasHeight - newHeight) / 2;
+            
+            updatePositionCanvas();
+            showStatusMessage("Voorgrond gecentreerd");
+        });
+        
+        // Event listener voor reset knop
+        resetBtn.addEventListener('click', () => {
+            // Reset naar oorspronkelijke positie en grootte
+            foregroundScale = Math.min(
+                canvasWidth / foregroundImage.width * 0.8,
+                canvasHeight / foregroundImage.height * 0.8
+            );
+            
+            const newWidth = foregroundImage.width * foregroundScale;
+            const newHeight = foregroundImage.height * foregroundScale;
+            
+            foregroundX = (canvasWidth - newWidth) / 2;
+            foregroundY = (canvasHeight - newHeight) / 2;
+            
+            sizeSlider.value = foregroundScale * 100;
+            sizeValue.textContent = Math.round(foregroundScale * 100) + "%";
+            
+            updatePositionCanvas();
+            showStatusMessage("Positie gereset");
+        });
+        
+        // Event listener voor download knop in popup
+        finalDownloadBtn.addEventListener('click', () => {
+            // Download de afbeelding
+            downloadImage();
+            
+            // Sluit popup
+            popupOverlay.style.display = 'none';
         });
         
         // Download de gecombineerde afbeelding
         function downloadImage() {
-            if (!lastDownloadUrl) return;
+            if (!foregroundImage || !backgroundImage) return;
+            
+            // Maak een tijdelijk canvas voor download
+            const downloadCanvas = document.createElement('canvas');
+            const downloadCtx = downloadCanvas.getContext('2d');
+            
+            // Stel canvasgrootte in op achtergrondgrootte
+            downloadCanvas.width = canvasWidth;
+            downloadCanvas.height = canvasHeight;
+            
+            // Teken de gecombineerde afbeelding
+            downloadCtx.drawImage(backgroundImage, 0, 0, downloadCanvas.width, downloadCanvas.height);
+            
+            const newWidth = foregroundImage.width * foregroundScale;
+            const newHeight = foregroundImage.height * foregroundScale;
+            
+            downloadCtx.drawImage(foregroundImage, foregroundX, foregroundY, newWidth, newHeight);
             
             // Maak een tijdelijk linkelement
             const link = document.createElement('a');
             link.download = `achtergrond-toegevoegd-${new Date().getTime()}.png`;
-            link.href = lastDownloadUrl;
+            link.href = downloadCanvas.toDataURL('image/png');
             
             // Simuleer een klik op de link om download te starten
             document.body.appendChild(link);
@@ -316,28 +833,11 @@
             document.body.removeChild(link);
             
             // Toon downloadbevestiging
-            showDownloadConfirmation();
-        }
-        
-        // Toon downloadbevestiging
-        function showDownloadConfirmation() {
-            // Maak een statusbericht
-            const statusMessage = document.createElement('div');
-            statusMessage.className = 'status-message';
-            statusMessage.textContent = "Afbeelding gedownload!";
-            statusMessage.style.backgroundColor = "#2ecc71";
-            
-            document.body.appendChild(statusMessage);
-            
-            // Verberg na 3 seconden
-            setTimeout(() => {
-                statusMessage.style.animation = 'slideIn 0.3s ease-out reverse';
-                setTimeout(() => statusMessage.remove(), 300);
-            }, 3000);
+            showStatusMessage("Afbeelding gedownload!", false, "#2ecc71");
         }
         
         // Toon statusbericht
-        function showStatusMessage(message, isError = false) {
+        function showStatusMessage(message, isError = false, bgColor = null) {
             // Verwijder bestaande statusberichten
             const existingMessages = document.querySelectorAll('.status-message');
             existingMessages.forEach(msg => msg.remove());
@@ -347,7 +847,9 @@
             statusMessage.className = 'status-message';
             statusMessage.textContent = message;
             
-            if (isError) {
+            if (bgColor) {
+                statusMessage.style.backgroundColor = bgColor;
+            } else if (isError) {
                 statusMessage.style.backgroundColor = '#e74c3c';
             }
             
