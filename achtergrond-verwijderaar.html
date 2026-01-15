@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achtergrond Verwijderaar - Goed Uitsnijden</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Achtergrond Verwijderaar - Goed Uitsnijden</h1>
+            <p class="subtitle">Upload of maak screenshot → Wit verwijderen → Goed uitsnijden → Direct downloaden</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="upload-section">
+                <h2 class="section-title">1. Kies Invoermethode</h2>
+                
+                <div class="input-methods">
+                    <div class="method-btn active" id="uploadMethodBtn">
+                        <span class="method-icon">📁</span>
+                        Upload Bestand
+                    </div>
+                    <div class="method-btn" id="screenshotMethodBtn">
+                        <span class="method-icon">📸</span>
+                        Screenshot
+                    </div>
+                </div>
+                
+                <div id="uploadSection">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Sleep je afbeelding hierheen of klik om te uploaden</p>
+                        <p>De achtergrond wordt automatisch verwijderd en uitgesneden</p>
+                        <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    </div>
+                </div>
+                
+                <div id="screenshotSection" class="hidden">
+                    <div class="screenshot-area" id="screenshotArea">
+                        <div class="screenshot-icon">📸</div>
+                        <p class="screenshot-text">Klik hier om een screenshot te maken van je scherm</p>
+                        <p>Selecteer een scherm/venster → Direct verwerken → Automatisch downloaden</p>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <h2 class="section-title">2. Instellingen</h2>
+                    
+                    <div class="control-group">
+                        <label for="threshold">Wit-herkenningsgevoeligheid</label>
+                        <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;">Hoger = alleen zeer wit wordt verwijderd, Lager = meer tinten worden als wit gezien</p>
+                        <div class="slider-container">
+                            <input type="range" min="200" max="254" value="240" class="slider" id="threshold">
+                            <span class="slider-value" id="thresholdValue">240</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="margin">Uitsnijmarge (in cm)</label>
+                        <p style="font-size: 0.9rem; margin-bottom: 10px; color: #666;">Extra ruimte rondom object bij uitsnijden (aan alle kanten)</p>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="2" step="0.1" value="0.5" class="slider" id="margin">
+                            <span class="slider-value" id="marginValue">0.5</span>
+                        </div>
+                        <div class="marges-info">
+                            <strong>Uitleg:</strong> Dit bepaalt hoeveel extra ruimte er rond het object blijft na uitsnijden:<br>
+                            • 0cm = strak op het object aangesneden<br>
+                            • 0.5cm = kleine ruimte rondom (aanbevolen)<br>
+                            • Meer = meer ruimte rondom het object
+                        </div>
+                    </div>
+                    
+                    <div class="info-box" style="margin-top: 20px;">
+                        <div class="info-title">Automatische Verwerking:</div>
+                        <div class="info-text">
+                            <p>• Na uploaden of screenshot start de verwerking automatisch</p>
+                            <p>• Wit wordt verwijderd en afbeelding wordt goed uitgesneden</p>
+                            <p>• Het resultaat wordt direct gedownload als PNG bestand</p>
+                            <p>• Geen extra marges toegevoegd, alleen goed uitgesneden</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <h2 class="section-title">3. Voorbeeld & Resultaat</h2>
+                
+                <div class="preview-container">
+                    <div>
+                        <h3 style="margin-bottom: 10px; color: #182848;">Origineel</h3>
+                        <div class="image-container">
+                            <div class="image-placeholder" id="originalPlaceholder">
+                                <p>Geüploade afbeelding of screenshot verschijnt hier</p>
+                            </div>
+                            <canvas id="originalCanvas"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin-bottom: 10px; color: #182848;">Resultaat (transparant + uitgesneden)</h3>
+                        <div class="image-container">
+                            <div class="image-placeholder" id="resultPlaceholder">
+                                <p>Resultaat met transparante achtergrond en goede uitsnede verschijnt hier</p>
+                            </div>
+                            <canvas id="resultCanvas"></canvas>
+                            <div class="loading hidden" id="loadingIndicator">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="manualDownloadBtn" class="button download-btn hidden">Handmatig Downloaden</button>
+                    
+                    <div class="info-box">
+                        <div class="info-title">Uitsnede Informatie:</div>
+                        <div class="info-text">
+                            <p><strong>Origineel formaat:</strong> <span id="originalSize">-</span></p>
+                            <p><strong>Uitgesneden formaat:</strong> <span id="resultSize">-</span></p>
+                            <p><strong>Bespaarde ruimte:</strong> <span id="spaceSaved">-</span></p>
+                            <p><strong>Uitsnijmarge:</strong> <span id="cropMarginInfo">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p><a href="index.html" style="color: #4b6cb7; text-decoration: none;">← Terug naar startpagina</a> | Achtergrond Verwijderaar - Goed Uitsnijden &copy; 2023 | Werkt volledig in je browser</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM elementen
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadMethodBtn = document.getElementById('uploadMethodBtn');
+        const screenshotMethodBtn = document.getElementById('screenshotMethodBtn');
+        const uploadSection = document.getElementById('uploadSection');
+        const screenshotSection = document.getElementById('screenshotSection');
+        const screenshotArea = document.getElementById('screenshotArea');
+        const thresholdSlider = document.getElementById('threshold');
+        const thresholdValue = document.getElementById('thresholdValue');
+        const marginSlider = document.getElementById('margin');
+        const marginValue = document.getElementById('marginValue');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const originalCtx = originalCanvas.getContext('2d');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const resultCtx = resultCanvas.getContext('2d');
+        const originalPlaceholder = document.getElementById('originalPlaceholder');
+        const resultPlaceholder = document.getElementById('resultPlaceholder');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const manualDownloadBtn = document.getElementById('manualDownloadBtn');
+        const originalSize = document.getElementById('originalSize');
+        const resultSize = document.getElementById('resultSize');
+        const spaceSaved = document.getElementById('spaceSaved');
+        const cropMarginInfo = document.getElementById('cropMarginInfo');
+        
+        // Variabelen
+        let originalImage = null;
+        let processedImage = null;
+        let currentMethod = 'upload'; // 'upload' of 'screenshot'
+        let mediaStream = null;
+        const dpi = 96; // Standaard DPI voor schermen (wordt gebruikt voor cm naar pixel conversie)
+        
+        // Event listeners voor methode selectie
+        uploadMethodBtn.addEventListener('click', () => switchMethod('upload'));
+        screenshotMethodBtn.addEventListener('click', () => switchMethod('screenshot'));
+        
+        // Event listeners voor upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('highlight');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('highlight');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('highlight');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleImageUpload(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleImageUpload(e.target.files[0]);
+            }
+        });
+        
+        // Event listeners voor screenshot
+        screenshotArea.addEventListener('click', startScreenshot);
+        
+        // Event listeners voor instellingen
+        thresholdSlider.addEventListener('input', () => {
+            thresholdValue.textContent = thresholdSlider.value;
+        });
+        
+        marginSlider.addEventListener('input', () => {
+            marginValue.textContent = marginSlider.value;
+        });
+        
+        // Event listener voor handmatige download
+        manualDownloadBtn.addEventListener('click', () => {
+            if (processedImage) {
+                downloadImage(processedImage);
+                showStatusMessage("Afbeelding gedownload!");
+            }
+        });
+        
+        // Functies
+        function switchMethod(method) {
+            currentMethod = method;
+            
+            // Update UI
+            if (method === 'upload') {
+                uploadMethodBtn.classList.add('active');
+                screenshotMethodBtn.classList.remove('active');
+                uploadSection.classList.remove('hidden');
+                screenshotSection.classList.add('hidden');
+            } else {
+                uploadMethodBtn.classList.remove('active');
+                screenshotMethodBtn.classList.add('active');
+                uploadSection.classList.add('hidden');
+                screenshotSection.classList.remove('hidden');
+            }
+        }
+        
+        function handleImageUpload(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                loadImageFromDataUrl(e.target.result);
+                // Start automatische verwerking na laden
+                setTimeout(() => processImageAutomatically(), 100);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function loadImageFromDataUrl(dataUrl) {
+            originalImage = new Image();
+            originalImage.onload = function() {
+                // Toon originele afbeelding
+                originalPlaceholder.classList.add('hidden');
+                originalCanvas.classList.remove('hidden');
+                
+                // Pas canvas grootte aan aan afbeelding (met maximale grootte)
+                const maxWidth = 500;
+                const maxHeight = 400;
+                let width = originalImage.width;
+                let height = originalImage.height;
+                
+                if (width > maxWidth) {
+                    height = (maxWidth / width) * height;
+                    width = maxWidth;
+                }
+                
+                if (height > maxHeight) {
+                    width = (maxHeight / height) * width;
+                    height = maxHeight;
+                }
+                
+                originalCanvas.width = width;
+                originalCanvas.height = height;
+                
+                // Teken de afbeelding op het canvas
+                originalCtx.drawImage(originalImage, 0, 0, width, height);
+                
+                // Reset resultaat canvas
+                resultPlaceholder.classList.remove('hidden');
+                resultCanvas.classList.add('hidden');
+                manualDownloadBtn.classList.add('hidden');
+                
+                // Update formaat info
+                originalSize.textContent = `${originalImage.width} × ${originalImage.height} pixels`;
+            };
+            originalImage.src = dataUrl;
+        }
+        
+        async function startScreenshot() {
+            try {
+                // Toon bericht
+                showStatusMessage("Selecteer een scherm of venster...");
+                
+                // Vraag toestemming voor schermopname
+                const displayMediaOptions = {
+                    video: {
+                        displaySurface: "window", // "screen", "window", of "browser"
+                        cursor: "never" // "always", "motion", of "never"
+                    },
+                    audio: false,
+                    preferCurrentTab: false // Toon alle tabbladen/vensters
+                };
+                
+                // Vraag de gebruiker om een scherm of venster te selecteren
+                mediaStream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+                
+                // Maak een video element om de stream af te spelen
+                const video = document.createElement('video');
+                video.srcObject = mediaStream;
+                
+                // Wacht tot de video geladen is
+                video.onloadedmetadata = () => {
+                    video.play();
+                    
+                    // Wacht even om zeker te zijn dat de video speelt
+                    setTimeout(() => {
+                        // Maak een canvas om de video frame vast te leggen
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = video.videoWidth;
+                        tempCanvas.height = video.videoHeight;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        
+                        // Teken het huidige video frame op het canvas
+                        tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                        
+                        // Converteer naar data URL en laad als afbeelding
+                        const screenshotDataUrl = tempCanvas.toDataURL('image/png');
+                        loadImageFromDataUrl(screenshotDataUrl);
+                        
+                        // Start automatische verwerking
+                        setTimeout(() => processImageAutomatically(), 100);
+                        
+                        // Stop de mediastream
+                        stopMediaStream();
+                        
+                        // Verberg statusbericht
+                        setTimeout(() => hideStatusMessage(), 2000);
+                        
+                    }, 100);
+                };
+                
+            } catch (error) {
+                console.error('Fout bij screenshot:', error);
+                
+                if (error.name === 'NotAllowedError') {
+                    showStatusMessage("Schermopname werd geweigerd", true);
+                } else {
+                    showStatusMessage("Fout bij maken screenshot: " + error.message, true);
+                }
+                
+                // Stop de mediastream als die actief is
+                stopMediaStream();
+                
+                // Verberg statusbericht na 3 seconden
+                setTimeout(() => hideStatusMessage(), 3000);
+            }
+        }
+        
+        function stopMediaStream() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        }
+        
+        function processImageAutomatically() {
+            if (!originalImage) {
+                showStatusMessage("Geen afbeelding geladen", true);
+                return;
+            }
+            
+            // Toon laadindicator
+            loadingIndicator.classList.remove('hidden');
+            showStatusMessage("Bezig met wit verwijderen en uitsnijden...");
+            
+            // Geef de browser even tijd om de UI te updaten
+            setTimeout(() => {
+                try {
+                    // Bereken marge in pixels (cm naar pixels: cm * dpi / 2.54)
+                    const marginCm = parseFloat(marginSlider.value);
+                    const marginPx = Math.round(marginCm * dpi / 2.54);
+                    
+                    // Update marge informatie
+                    cropMarginInfo.textContent = `${marginPx}px (${marginCm}cm)`;
+                    
+                    // Maak een tijdelijk canvas voor de volledige grootte verwerking
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    
+                    // Gebruik de originele afbeelding afmetingen
+                    tempCanvas.width = originalImage.width;
+                    tempCanvas.height = originalImage.height;
+                    tempCtx.drawImage(originalImage, 0, 0);
+                    
+                    // Verwijder de achtergrond en krijg de uitsnede bounds
+                    const result = removeBackgroundAndCrop(tempCanvas, tempCtx, parseInt(thresholdSlider.value), marginPx);
+                    
+                    // Toon het resultaat
+                    resultPlaceholder.classList.add('hidden');
+                    resultCanvas.classList.remove('hidden');
+                    
+                    // Stel de canvas grootte in op de uitgesneden grootte
+                    resultCanvas.width = result.width;
+                    resultCanvas.height = result.height;
+                    
+                    // Teken het uitgesneden beeld op het resultaat canvas
+                    resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+                    resultCtx.drawImage(result.canvas, 0, 0);
+                    
+                    // Update resultaat formaat info
+                    resultSize.textContent = `${result.width} × ${result.height} pixels`;
+                    
+                    // Bereken bespaarde ruimte
+                    const originalArea = originalImage.width * originalImage.height;
+                    const resultArea = result.width * result.height;
+                    const savedPercentage = Math.round(((originalArea - resultArea) / originalArea) * 100);
+                    spaceSaved.textContent = `${savedPercentage}% (${formatBytes(originalArea * 4)} → ${formatBytes(resultArea * 4)})`;
+                    
+                    // Sla de verwerkte afbeelding op voor download
+                    processedImage = resultCanvas.toDataURL('image/png');
+                    
+                    // Toon de handmatige download knop
+                    manualDownloadBtn.classList.remove('hidden');
+                    
+                    // Download automatisch
+                    setTimeout(() => {
+                        downloadImage(processedImage);
+                        showStatusMessage("Uitgesneden afbeelding gedownload!");
+                        
+                        // Verberg statusbericht na 3 seconden
+                        setTimeout(() => hideStatusMessage(), 3000);
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Fout bij verwerken:', error);
+                    showStatusMessage("Fout bij verwerken afbeelding", true);
+                    
+                    // Verberg statusbericht na 3 seconden
+                    setTimeout(() => hideStatusMessage(), 3000);
+                } finally {
+                    // Verberg laadindicator
+                    loadingIndicator.classList.add('hidden');
+                }
+            }, 50);
+        }
+        
+        function removeBackgroundAndCrop(canvas, ctx, threshold, margin) {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Haal de image data op
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            
+            // Initialiseer bounds (links, rechts, boven, onder)
+            let left = width;
+            let right = 0;
+            let top = height;
+            let bottom = 0;
+            
+            // Vind de bounds van niet-witte pixels
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = (y * width + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    
+                    // Controleer of de pixel niet wit is (boven de drempel)
+                    if (r < threshold || g < threshold || b < threshold) {
+                        // Update bounds
+                        if (x < left) left = x;
+                        if (x > right) right = x;
+                        if (y < top) top = y;
+                        if (y > bottom) bottom = y;
+                    }
+                }
+            }
+            
+            // Als er geen niet-witte pixels zijn gevonden, gebruik dan de hele afbeelding
+            if (left > right || top > bottom) {
+                left = 0;
+                right = width - 1;
+                top = 0;
+                bottom = height - 1;
+            }
+            
+            // Pas de bounds aan met de marge
+            left = Math.max(0, left - margin);
+            right = Math.min(width - 1, right + margin);
+            top = Math.max(0, top - margin);
+            bottom = Math.min(height - 1, bottom + margin);
+            
+            // Bereken de nieuwe breedte en hoogte
+            const cropWidth = right - left + 1;
+            const cropHeight = bottom - top + 1;
+            
+            // Maak een nieuw canvas voor de uitsnede
+            const croppedCanvas = document.createElement('canvas');
+            croppedCanvas.width = cropWidth;
+            croppedCanvas.height = cropHeight;
+            const croppedCtx = croppedCtx.getContext('2d');
+            
+            // Kopieer het uitgesneden gebied naar het nieuwe canvas
+            croppedCtx.drawImage(canvas, left, top, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            
+            // Verwijder nu de achtergrond van het uitgesneden gebied
+            const croppedImageData = croppedCtx.getImageData(0, 0, cropWidth, cropHeight);
+            const croppedData = croppedImageData.data;
+            
+            for (let i = 0; i < croppedData.length; i += 4) {
+                const r = croppedData[i];
+                const g = croppedData[i + 1];
+                const b = croppedData[i + 2];
+                
+                // Als de pixel wit is (boven de drempel), maak hem transparant
+                if (r >= threshold && g >= threshold && b >= threshold) {
+                    croppedData[i + 3] = 0; // Alpha op 0 voor transparantie
+                }
+            }
+            
+            // Plaats de verwerkte image data terug op het canvas
+            croppedCtx.putImageData(croppedImageData, 0, 0);
+            
+            return {
+                canvas: croppedCanvas,
+                width: cropWidth,
+                height: cropHeight,
+                bounds: { left, top, right, bottom },
+                margin: margin
+            };
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function downloadImage(dataUrl) {
+            const link = document.createElement('a');
+            link.download = `uitgesneden-${new Date().getTime()}.png`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function showStatusMessage(message, isError = false) {
+            // Verwijder bestaande statusberichten
+            const existingMessages = document.querySelectorAll('.status-message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            // Maak nieuw statusbericht
+            const statusMessage = document.createElement('div');
+            statusMessage.className = 'status-message';
+            statusMessage.textContent = message;
+            
+            if (isError) {
+                statusMessage.style.backgroundColor = '#e74c3c';
+            }
+            
+            document.body.appendChild(statusMessage);
+        }
+        
+        function hideStatusMessage() {
+            const statusMessages = document.querySelectorAll('.status-message');
+            statusMessages.forEach(msg => {
+                msg.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }
+        
+        // Initialiseer de weergave van slider waarden
+        thresholdValue.textContent = thresholdSlider.value;
+        marginValue.textContent = marginSlider.value;
+        
+        // Toon welkomstbericht
+        setTimeout(() => {
+            showStatusMessage("Kies een invoermethode om te beginnen");
+            setTimeout(() => hideStatusMessage(), 3000);
+        }, 1000);
+    </script>
+</body>
+</html>
