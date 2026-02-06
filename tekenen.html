@@ -19,16 +19,23 @@
         }
         
         .main-content {
-            flex-direction: row-reverse; /* Afbeelding rechts, controls links */
+            display: flex;
+            flex-wrap: wrap;
+            padding: 30px;
+            gap: 30px;
         }
         
         .preview-container {
-            flex: 2; /* Meer ruimte voor canvas */
+            flex: 2;
+            min-width: 300px;
         }
         
         .controls {
-            flex: 1; /* Minder ruimte voor controls */
+            flex: 1;
             min-width: 300px;
+            background-color: #f8f9ff;
+            padding: 25px;
+            border-radius: 10px;
         }
         
         .canvas-wrapper {
@@ -47,10 +54,6 @@
             top: 0;
             left: 0;
             cursor: crosshair;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: -webkit-crisp-edges;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
         }
         
         .canvas-placeholder {
@@ -61,6 +64,7 @@
             text-align: center;
             color: #7a8bb8;
             z-index: 1;
+            padding: 30px;
         }
         
         .color-palette {
@@ -255,15 +259,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
-        /* Prestatie optimalisaties */
-        .canvas-wrapper {
-            will-change: transform;
-        }
-        
-        #drawingCanvas {
-            will-change: transform;
-        }
-        
         @media (max-width: 992px) {
             .main-content {
                 flex-direction: column;
@@ -295,15 +290,6 @@
                 grid-template-columns: repeat(4, 1fr);
             }
         }
-        
-        /* Snellere animaties */
-        * {
-            scroll-behavior: auto !important;
-        }
-        
-        .tool-btn, .zoom-btn, .color-swatch {
-            transition-duration: 0.1s !important;
-        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -315,73 +301,6 @@
         </header>
         
         <div class="main-content">
-            <div class="preview-container">
-                <div class="tool-header">
-                    <div class="tool-icon">🎨</div>
-                    <div>
-                        <h2>Precisie Tekentool</h2>
-                        <p>Upload een afbeelding en teken er met precisie overheen. Zoom oneindig in voor detailwerk.</p>
-                    </div>
-                </div>
-                
-                <div class="input-methods">
-                    <div class="method-btn active" id="uploadMethod">
-                        <div class="method-icon"><i class="fas fa-upload"></i></div>
-                        <div>Upload Afbeelding</div>
-                    </div>
-                    <div class="method-btn" id="screenshotMethod">
-                        <div class="method-icon"><i class="fas fa-camera"></i></div>
-                        <div>Maak Screenshot</div>
-                    </div>
-                </div>
-                
-                <div id="uploadSection">
-                    <div class="upload-area" id="uploadArea">
-                        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                        <div class="upload-text">Klik hier of sleep een afbeelding om te uploaden</div>
-                        <p>Ondersteunde formaten: JPG, PNG, GIF, WebP (max 10MB)</p>
-                        <input type="file" id="imageInput" class="file-input" accept="image/*">
-                    </div>
-                    
-                    <div class="screenshot-area hidden" id="screenshotSection">
-                        <div class="screenshot-icon"><i class="fas fa-camera"></i></div>
-                        <div class="screenshot-text">Klik op de knop om een screenshot te maken</div>
-                        <p>De tool maakt een screenshot van het volledige scherm of een geselecteerd gebied</p>
-                        <button class="button screenshot-btn" id="captureBtn">Screenshot Maken</button>
-                        
-                        <div class="screenshot-instructions">
-                            <h4>Hoe maak je een screenshot:</h4>
-                            <ol>
-                                <li>Klik op "Screenshot Maken"</li>
-                                <li>Selecteer het gebied dat je wilt vastleggen</li>
-                                <li>De screenshot wordt automatisch geladen in de tekentool</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="canvas-wrapper">
-                    <div class="canvas-placeholder" id="canvasPlaceholder">
-                        <div style="font-size: 4rem; margin-bottom: 15px;"><i class="fas fa-image"></i></div>
-                        <p>Upload een afbeelding om te beginnen met tekenen</p>
-                        <p class="status-waiting" style="margin-top: 10px;">Sleep je afbeelding hiernaartoe of klik om te selecteren</p>
-                    </div>
-                    <div class="canvas-container">
-                        <canvas id="drawingCanvas"></canvas>
-                    </div>
-                    
-                    <div class="transform-info">
-                        Pan: <kbd>Shift</kbd> + Sleep | Zoom: Muisscroll
-                    </div>
-                    
-                    <div class="status-bar">
-                        <span id="cursorPosition">Positie: -</span> | 
-                        <span id="zoomStatus">Zoom: 100%</span> |
-                        <span id="brushStatus">Dikte: 5px</span>
-                    </div>
-                </div>
-            </div>
-            
             <div class="controls">
                 <h3 class="section-title"><i class="fas fa-sliders-h"></i> Tekengereedschappen</h3>
                 
@@ -477,6 +396,73 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="preview-container">
+                <div class="tool-header">
+                    <div class="tool-icon">🎨</div>
+                    <div>
+                        <h2>Precisie Tekentool</h2>
+                        <p>Upload een afbeelding en teken er met precisie overheen. Zoom oneindig in voor detailwerk.</p>
+                    </div>
+                </div>
+                
+                <div class="input-methods">
+                    <div class="method-btn active" id="uploadMethod">
+                        <div class="method-icon"><i class="fas fa-upload"></i></div>
+                        <div>Upload Afbeelding</div>
+                    </div>
+                    <div class="method-btn" id="screenshotMethod">
+                        <div class="method-icon"><i class="fas fa-camera"></i></div>
+                        <div>Maak Screenshot</div>
+                    </div>
+                </div>
+                
+                <div id="uploadSection">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div class="upload-text">Klik hier of sleep een afbeelding om te uploaden</div>
+                        <p>Ondersteunde formaten: JPG, PNG, GIF, WebP (max 10MB)</p>
+                        <input type="file" id="imageInput" class="file-input" accept="image/*">
+                    </div>
+                    
+                    <div class="screenshot-area hidden" id="screenshotSection">
+                        <div class="screenshot-icon"><i class="fas fa-camera"></i></div>
+                        <div class="screenshot-text">Klik op de knop om een screenshot te maken</div>
+                        <p>De tool maakt een screenshot van het volledige scherm of een geselecteerd gebied</p>
+                        <button class="button screenshot-btn" id="captureBtn">Screenshot Maken</button>
+                        
+                        <div class="screenshot-instructions">
+                            <h4>Hoe maak je een screenshot:</h4>
+                            <ol>
+                                <li>Klik op "Screenshot Maken"</li>
+                                <li>Selecteer het gebied dat je wilt vastleggen</li>
+                                <li>De screenshot wordt automatisch geladen in de tekentool</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="canvas-wrapper">
+                    <div class="canvas-placeholder" id="canvasPlaceholder">
+                        <div style="font-size: 4rem; margin-bottom: 15px;"><i class="fas fa-image"></i></div>
+                        <p>Upload een afbeelding om te beginnen met tekenen</p>
+                        <p class="status-waiting" style="margin-top: 10px;">Sleep je afbeelding hiernaartoe of klik om te selecteren</p>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="drawingCanvas"></canvas>
+                    </div>
+                    
+                    <div class="transform-info">
+                        Pan: <kbd>Shift</kbd> + Sleep | Zoom: Muisscroll
+                    </div>
+                    
+                    <div class="status-bar">
+                        <span id="cursorPosition">Positie: -</span> | 
+                        <span id="zoomStatus">Zoom: 100%</span> |
+                        <span id="brushStatus">Dikte: 5px</span>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <footer>
@@ -485,9 +471,9 @@
     </div>
 
     <script>
-        // Basis variabelen - geoptimaliseerd voor prestaties
+        // Basis variabelen
         const canvas = document.getElementById('drawingCanvas');
-        const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+        const ctx = canvas.getContext('2d');
         const canvasWrapper = document.querySelector('.canvas-wrapper');
         const canvasPlaceholder = document.getElementById('canvasPlaceholder');
         
@@ -508,12 +494,8 @@
         let historyIndex = -1;
         let isEraser = false;
         let shiftPressed = false;
-        let isDragging = false;
-        let lastTime = 0;
-        const FPS_LIMIT = 60;
-        const frameTime = 1000 / FPS_LIMIT;
         
-        // Kleurenpalet - helderdere kleuren voor betere zichtbaarheid
+        // Kleurenpalet
         const colors = [
             '#4b6cb7', // primaire blauw
             '#e74c3c', // fel rood
@@ -524,41 +506,21 @@
             '#e67e22', // fel oranje
             '#34495e', // donker blauw/grijs
             '#ffffff', // wit
-            '#000000', // zwart
-            '#ff6b6b', // koraal rood
-            '#48dbfb', // lichtblauw
-            '#1dd1a1', // mint groen
-            '#feca57', // oranje geel
-            '#ff9ff3'  // roze
+            '#000000'  // zwart
         ];
         
-        // Initialisatie functie - geoptimaliseerd
-        function init() {
+        // Initialisatie
+        document.addEventListener('DOMContentLoaded', function() {
             setupColorPalette();
             setupEventListeners();
             updateBrushPreview();
             
-            // Start animatie loop voor vloeiende tekenervaring
-            requestAnimationFrame(animationLoop);
-            
-            // Stel de canvas rendering in voor betere prestaties
-            optimizeCanvas();
-        }
+            // Zorg dat canvas een initiële grootte heeft
+            canvas.width = 800;
+            canvas.height = 600;
+        });
         
-        // Canvas optimalisatie voor betere prestaties
-        function optimizeCanvas() {
-            // Zet de canvas rendering op high performance
-            canvas.style.imageRendering = 'optimizeSpeed';
-            canvas.style.willChange = 'transform';
-            
-            // Gebruik een offscreen canvas voor snellere bewerkingen
-            if (!window.offscreenCanvas) {
-                window.offscreenCanvas = document.createElement('canvas');
-                window.offscreenCtx = window.offscreenCanvas.getContext('2d');
-            }
-        }
-        
-        // Kleurenpalet opzetten - geoptimaliseerd
+        // Kleurenpalet opzetten
         function setupColorPalette() {
             const palette = document.getElementById('colorPalette');
             palette.innerHTML = '';
@@ -575,9 +537,9 @@
                 }
                 
                 colorSwatch.addEventListener('click', () => {
-                    // Snelle kleurwijziging zonder veel DOM operaties
-                    const activeSwatch = palette.querySelector('.active');
-                    if (activeSwatch) activeSwatch.classList.remove('active');
+                    // Verwijder active class van alle swatches
+                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                    // Voeg active class toe aan geklikte swatch
                     colorSwatch.classList.add('active');
                     currentColor = color;
                     document.getElementById('customColor').value = color;
@@ -587,59 +549,26 @@
                     document.getElementById('brushPreview').style.backgroundColor = color;
                     
                     // Update tool status
-                    const brushTool = document.getElementById('brushTool');
-                    const eraserTool = document.getElementById('eraserTool');
-                    brushTool.classList.add('active');
-                    eraserTool.classList.remove('active');
+                    document.getElementById('brushTool').classList.add('active');
+                    document.getElementById('eraserTool').classList.remove('active');
                 });
                 
                 palette.appendChild(colorSwatch);
             });
         }
         
-        // Event listeners instellen - geoptimaliseerd
+        // Event listeners instellen
         function setupEventListeners() {
-            // Gebruik event delegation voor betere prestaties
-            document.addEventListener('click', (e) => {
-                // Input method switcher
-                if (e.target.closest('#uploadMethod')) {
-                    switchToUpload();
-                } else if (e.target.closest('#screenshotMethod')) {
-                    switchToScreenshot();
-                }
-                
-                // Tool selectie
-                if (e.target.closest('#brushTool')) {
-                    selectBrushTool();
-                } else if (e.target.closest('#eraserTool')) {
-                    selectEraserTool();
-                } else if (e.target.closest('#clearTool')) {
-                    clearDrawing();
-                }
-                
-                // Zoom controls
-                if (e.target.closest('#zoomIn')) {
-                    zoom(1.2);
-                } else if (e.target.closest('#zoomOut')) {
-                    zoom(0.8);
-                } else if (e.target.closest('#resetZoomBtn')) {
-                    resetZoom();
-                }
-                
-                // Actie knoppen
-                if (e.target.closest('#undoBtn')) {
-                    undo();
-                } else if (e.target.closest('#redoBtn')) {
-                    redo();
-                } else if (e.target.closest('#saveBtn')) {
-                    saveImage();
-                }
-            });
+            // Input method switcher
+            document.getElementById('uploadMethod').addEventListener('click', switchToUpload);
+            document.getElementById('screenshotMethod').addEventListener('click', switchToScreenshot);
             
             // Afbeelding uploaden
             const uploadArea = document.getElementById('uploadArea');
+            const imageInput = document.getElementById('imageInput');
+            
             uploadArea.addEventListener('click', () => {
-                document.getElementById('imageInput').click();
+                imageInput.click();
             });
             
             uploadArea.addEventListener('dragover', (e) => {
@@ -660,35 +589,41 @@
                 }
             });
             
-            document.getElementById('imageInput').addEventListener('change', (e) => {
+            imageInput.addEventListener('change', (e) => {
                 if (e.target.files.length) {
                     handleImageUpload(e.target.files[0]);
                 }
             });
             
+            // Screenshot knop
+            document.getElementById('captureBtn').addEventListener('click', () => {
+                alert('In deze demo werkt de screenshot functionaliteit niet. Upload een afbeelding om te beginnen.');
+            });
+            
             // Aangepaste kleur
             document.getElementById('customColor').addEventListener('input', (e) => {
                 currentColor = e.target.value;
+                isEraser = false;
                 
                 // Update active swatch
                 const swatches = document.querySelectorAll('.color-swatch');
                 let found = false;
-                for (let swatch of swatches) {
+                swatches.forEach(swatch => {
                     if (swatch.dataset.color === currentColor) {
                         swatch.classList.add('active');
                         found = true;
                     } else {
                         swatch.classList.remove('active');
                     }
-                }
+                });
                 
                 // Als kleur niet in palet staat, maak alle inactief
                 if (!found) {
                     swatches.forEach(swatch => swatch.classList.remove('active'));
                 }
                 
-                isEraser = false;
-                selectBrushTool();
+                document.getElementById('brushTool').classList.add('active');
+                document.getElementById('eraserTool').classList.remove('active');
                 document.getElementById('brushPreview').style.backgroundColor = currentColor;
             });
             
@@ -701,14 +636,24 @@
                 updateBrushPreview();
             });
             
-            // Zoom met muiswiel
+            // Tool selectie
+            document.getElementById('brushTool').addEventListener('click', selectBrushTool);
+            document.getElementById('eraserTool').addEventListener('click', selectEraserTool);
+            document.getElementById('clearTool').addEventListener('click', clearDrawing);
+            
+            // Zoom controls
+            document.getElementById('zoomIn').addEventListener('click', () => zoom(1.2));
+            document.getElementById('zoomOut').addEventListener('click', () => zoom(0.8));
+            document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
+            
+            // Muiswiel voor zoom
             canvasWrapper.addEventListener('wheel', handleMouseWheel, { passive: false });
             
             // Toetsenbord events voor panning met Shift
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'Shift') {
                     shiftPressed = true;
-                    if (isDragging) {
+                    if (isDrawing) {
                         isPanning = true;
                         canvas.style.cursor = 'grab';
                     }
@@ -738,25 +683,25 @@
                 if (e.key === 'Shift') {
                     shiftPressed = false;
                     isPanning = false;
-                    if (!isDrawing) {
-                        canvas.style.cursor = 'crosshair';
-                    }
+                    canvas.style.cursor = 'crosshair';
                 }
             });
             
-            // Canvas events - geoptimaliseerd
-            canvas.addEventListener('mousedown', startDrawingOrPanning);
-            canvas.addEventListener('mousemove', handleMouseMove);
-            canvas.addEventListener('mouseup', stopDrawingOrPanning);
-            canvas.addEventListener('mouseleave', stopDrawingOrPanning);
+            // Canvas events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
             
             // Touch events voor mobiele apparaten
             canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
             canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-            canvas.addEventListener('touchend', stopDrawingOrPanning);
+            canvas.addEventListener('touchend', stopDrawing);
             
-            // Resize event voor responsive canvas
-            window.addEventListener('resize', handleResize);
+            // Actie knoppen
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+            document.getElementById('saveBtn').addEventListener('click', saveImage);
         }
         
         // Hulp functies voor UI
@@ -772,7 +717,6 @@
             document.getElementById('screenshotMethod').classList.add('active');
             document.getElementById('uploadArea').classList.add('hidden');
             document.getElementById('screenshotSection').classList.remove('hidden');
-            alert('Screenshot functionaliteit werkt alleen in een live omgeving. Upload een afbeelding om te beginnen.');
         }
         
         function selectBrushTool() {
@@ -787,19 +731,12 @@
             document.getElementById('eraserTool').classList.add('active');
         }
         
-        // Afbeelding upload handler - geoptimaliseerd
+        // Afbeelding upload handler - GECORRIGEERDE VERSIE
         function handleImageUpload(file) {
-            if (!file.type.match('image.*')) {
-                showStatus('Selecteer een afbeelding bestand (JPG, PNG, GIF, WebP)', 'error');
+            if (!file || !file.type.match('image.*')) {
+                alert('Selecteer een afbeelding bestand (JPG, PNG, GIF, WebP)');
                 return;
             }
-            
-            if (file.size > 10 * 1024 * 1024) {
-                showStatus('Afbeelding is te groot (max 10MB)', 'error');
-                return;
-            }
-            
-            showStatus('Afbeelding laden...', 'info');
             
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -808,45 +745,38 @@
                     uploadedImage = img;
                     canvasPlaceholder.style.display = 'none';
                     
-                    // Optimaliseer canvas grootte
-                    const maxDimension = 2048;
-                    let width = img.width;
-                    let height = img.height;
-                    
-                    if (width > maxDimension || height > maxDimension) {
-                        const ratio = Math.min(maxDimension / width, maxDimension / height);
-                        width = Math.floor(width * ratio);
-                        height = Math.floor(height * ratio);
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    
-                    if (window.offscreenCanvas) {
-                        window.offscreenCanvas.width = width;
-                        window.offscreenCanvas.height = height;
-                    }
+                    // Pas canvas aan aan afbeelding grootte
+                    canvas.width = img.width;
+                    canvas.height = img.height;
                     
                     // Reset zoom en positie
                     resetZoom();
+                    
+                    // Teken de afbeelding op canvas
                     updateCanvas();
                     
                     // Sla initiële staat op in geschiedenis
                     saveToHistory();
                     
-                    showStatus('Afbeelding geladen! Begin met tekenen.', 'success');
+                    // Update status
+                    document.getElementById('cursorPosition').textContent = `Afbeelding: ${img.width}x${img.height}`;
+                };
+                img.onerror = function() {
+                    alert('Fout bij het laden van de afbeelding. Probeer een ander bestand.');
                 };
                 img.src = event.target.result;
+            };
+            reader.onerror = function() {
+                alert('Fout bij het lezen van het bestand.');
             };
             reader.readAsDataURL(file);
         }
         
-        // Zoom functies - geoptimaliseerd
+        // Zoom functies
         function zoom(factor) {
-            const oldZoom = zoomLevel;
             zoomLevel *= factor;
             
-            // Limiteer zoom tussen 0.01x en 50x voor meer precisie
+            // Limiteer zoom tussen 0.01x en 50x
             zoomLevel = Math.max(0.01, Math.min(50, zoomLevel));
             
             // Update zoom level display
@@ -863,13 +793,7 @@
             
             // Zoom in/uit op basis van scroll richting
             const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-            
-            // Zoom sneller als Ctrl is ingedrukt
-            if (e.ctrlKey) {
-                zoom(zoomFactor * 1.3);
-            } else {
-                zoom(zoomFactor);
-            }
+            zoom(zoomFactor);
         }
         
         function resetZoom() {
@@ -881,107 +805,109 @@
             updateCanvas();
         }
         
-        // Teken en pan functies - geoptimaliseerd
-        function startDrawingOrPanning(e) {
-            e.preventDefault();
-            isDragging = true;
+        // Canvas update functie
+        function updateCanvas() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            const [x, y] = getCanvasCoordinates(e);
+            // Save context state
+            ctx.save();
             
-            if (shiftPressed) {
-                // Start panning
-                isPanning = true;
-                isDrawing = false;
-                lastPanX = e.clientX || e.touches[0].clientX;
-                lastPanY = e.clientY || e.touches[0].clientY;
-                canvas.style.cursor = 'grabbing';
-            } else {
-                // Start drawing
-                isDrawing = true;
-                isPanning = false;
-                [lastX, lastY] = [x, y];
-                
-                // Begin een nieuw pad voor sneller tekenen
-                ctx.save();
-                ctx.translate(offsetX, offsetY);
-                ctx.scale(zoomLevel, zoomLevel);
-                
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineWidth = brushSize;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = isEraser ? '#ffffff' : currentColor;
-                ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
-                
-                ctx.restore();
+            // Apply zoom and pan transformations
+            ctx.translate(offsetX, offsetY);
+            ctx.scale(zoomLevel, zoomLevel);
+            
+            // Draw uploaded image if exists
+            if (uploadedImage) {
+                ctx.drawImage(uploadedImage, 0, 0);
             }
+            
+            // Restore context state
+            ctx.restore();
         }
         
-        function handleMouseMove(e) {
+        // Teken functies
+        function startDrawing(e) {
+            if (shiftPressed) {
+                // Start panning als shift is ingedrukt
+                isPanning = true;
+                lastPanX = e.clientX;
+                lastPanY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
+            
+            isDrawing = true;
+            [lastX, lastY] = getCanvasCoordinates(e);
+            
+            // Begin een nieuw pad
+            ctx.save();
+            ctx.translate(offsetX, offsetY);
+            ctx.scale(zoomLevel, zoomLevel);
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = isEraser ? '#ffffff' : currentColor;
+            ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+            
+            ctx.restore();
+        }
+        
+        function draw(e) {
+            if (isPanning && shiftPressed) {
+                // Panning logica
+                const deltaX = e.clientX - lastPanX;
+                const deltaY = e.clientY - lastPanY;
+                
+                offsetX += deltaX;
+                offsetY += deltaY;
+                
+                lastPanX = e.clientX;
+                lastPanY = e.clientY;
+                
+                updateCanvas();
+                return;
+            }
+            
+            if (!isDrawing) return;
+            
             e.preventDefault();
             
             const [x, y] = getCanvasCoordinates(e);
             
-            if (isPanning && shiftPressed) {
-                // Panning logica
-                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-                
-                if (clientX !== undefined && clientY !== undefined) {
-                    const deltaX = clientX - lastPanX;
-                    const deltaY = clientY - lastPanY;
-                    
-                    offsetX += deltaX;
-                    offsetY += deltaY;
-                    
-                    lastPanX = clientX;
-                    lastPanY = clientY;
-                    
-                    updateCanvas();
-                }
-            } else if (isDrawing) {
-                // Tekenen logica
-                ctx.save();
-                ctx.translate(offsetX, offsetY);
-                ctx.scale(zoomLevel, zoomLevel);
-                
-                ctx.lineTo(x, y);
-                ctx.stroke();
-                
-                ctx.restore();
-                
-                // Update laatste positie
-                [lastX, lastY] = [x, y];
-            }
+            // Teken lijn
+            ctx.save();
+            ctx.translate(offsetX, offsetY);
+            ctx.scale(zoomLevel, zoomLevel);
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            ctx.restore();
             
             // Update cursor positie
             updateCursorPosition(x, y);
+            
+            // Update laatste positie
+            [lastX, lastY] = [x, y];
         }
         
-        function stopDrawingOrPanning() {
+        function stopDrawing() {
             if (isDrawing) {
                 isDrawing = false;
-                
-                // Sla de tekening op in geschiedenis
                 saveToHistory();
             }
             
             if (isPanning) {
                 isPanning = false;
-            }
-            
-            isDragging = false;
-            
-            // Reset cursor naar crosshair tenzij shift ingedrukt
-            if (!shiftPressed) {
-                canvas.style.cursor = 'crosshair';
-            } else {
-                canvas.style.cursor = 'grab';
+                canvas.style.cursor = shiftPressed ? 'grab' : 'crosshair';
             }
         }
         
-        // Hulp functies - geoptimaliseerd
+        // Hulp functies
         function getCanvasCoordinates(e) {
             const rect = canvas.getBoundingClientRect();
             let clientX, clientY;
@@ -1010,7 +936,7 @@
         
         function updateBrushPreview() {
             const brushPreview = document.getElementById('brushPreview');
-            const size = Math.max(brushSize, 5); // Minimaal 5px voor zichtbaarheid
+            const size = Math.max(brushSize, 5);
             brushPreview.style.width = `${size}px`;
             brushPreview.style.height = `${size}px`;
         }
@@ -1018,54 +944,20 @@
         // Touch event handlers
         function handleTouchStart(e) {
             e.preventDefault();
-            startDrawingOrPanning(e.touches[0]);
+            if (e.touches.length === 1) {
+                startDrawing(e.touches[0]);
+            }
         }
         
         function handleTouchMove(e) {
             e.preventDefault();
-            handleMouseMove(e.touches[0]);
-        }
-        
-        // Canvas update functie - geoptimaliseerd
-        function updateCanvas() {
-            // Gebruik een offscreen canvas voor snellere rendering
-            if (window.offscreenCanvas && uploadedImage) {
-                window.offscreenCtx.clearRect(0, 0, canvas.width, canvas.height);
-                window.offscreenCtx.drawImage(uploadedImage, 0, 0);
-                
-                // Teken bestaande tekening op offscreen canvas
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                window.offscreenCtx.putImageData(imageData, 0, 0);
-                
-                // Teken offscreen canvas op main canvas met transformaties
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.save();
-                ctx.translate(offsetX, offsetY);
-                ctx.scale(zoomLevel, zoomLevel);
-                ctx.drawImage(window.offscreenCanvas, 0, 0);
-                ctx.restore();
-            } else {
-                // Fallback voor oudere browsers
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                if (uploadedImage) {
-                    ctx.save();
-                    ctx.translate(offsetX, offsetY);
-                    ctx.scale(zoomLevel, zoomLevel);
-                    ctx.drawImage(uploadedImage, 0, 0);
-                    ctx.restore();
-                }
+            if (e.touches.length === 1) {
+                draw(e.touches[0]);
             }
         }
         
-        // Geschiedenis functies - geoptimaliseerd
+        // Geschiedenis functies
         function saveToHistory() {
-            const now = Date.now();
-            
-            // Throttle geschiedenis opslag om prestaties te verbeteren
-            if (now - lastTime < 500 && historyIndex >= 0) return;
-            lastTime = now;
-            
             // Verwijder toekomstige geschiedenis als we ergens in het midden staan
             if (historyIndex < drawingHistory.length - 1) {
                 drawingHistory = drawingHistory.slice(0, historyIndex + 1);
@@ -1076,7 +968,7 @@
             drawingHistory.push(imageData);
             historyIndex = drawingHistory.length - 1;
             
-            // Limiteer geschiedenis grootte voor geheugen
+            // Limiteer geschiedenis grootte
             if (drawingHistory.length > 20) {
                 drawingHistory.shift();
                 historyIndex--;
@@ -1105,7 +997,10 @@
         
         // Canvas acties
         function clearDrawing() {
-            if (!uploadedImage) return;
+            if (!uploadedImage) {
+                alert('Upload eerst een afbeelding.');
+                return;
+            }
             
             if (confirm('Weet je zeker dat je de hele tekening wilt verwijderen?')) {
                 updateCanvas();
@@ -1115,25 +1010,21 @@
         
         function saveImage() {
             if (!uploadedImage) {
-                showStatus('Upload eerst een afbeelding om op te slaan.', 'error');
+                alert('Upload eerst een afbeelding om op te slaan.');
                 return;
             }
             
-            showStatus('Afbeelding opslaan...', 'info');
-            
-            // Gebruik offscreen canvas voor betere kwaliteit
-            const tempCanvas = window.offscreenCanvas || document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            
+            // Maak een tijdelijk canvas voor de gecombineerde afbeelding
+            const tempCanvas = document.createElement('canvas');
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
             
             // Teken de originele afbeelding
             tempCtx.drawImage(uploadedImage, 0, 0);
             
             // Teken de tekening eroverheen
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            tempCtx.putImageData(imageData, 0, 0);
+            tempCtx.drawImage(canvas, 0, 0);
             
             // Maak een download link
             const link = document.createElement('a');
@@ -1141,41 +1032,7 @@
             link.download = `tekening-${timestamp}.png`;
             link.href = tempCanvas.toDataURL('image/png');
             link.click();
-            
-            showStatus('Afbeelding opgeslagen!', 'success');
         }
-        
-        // Hulp functies
-        function showStatus(message, type) {
-            // Eenvoudige status melding
-            console.log(`${type}: ${message}`);
-            
-            // Update status bar voor belangrijke meldingen
-            if (type === 'error' || type === 'success') {
-                const statusBar = document.querySelector('.status-bar');
-                const originalHTML = statusBar.innerHTML;
-                
-                statusBar.innerHTML = `<span style="color:${type === 'error' ? '#e74c3c' : '#2ecc71'}">${message}</span>`;
-                
-                setTimeout(() => {
-                    statusBar.innerHTML = originalHTML;
-                }, 3000);
-            }
-        }
-        
-        function handleResize() {
-            // Canvas grootte blijft hetzelfde, alleen de weergave verandert
-            updateCanvas();
-        }
-        
-        // Animatie loop voor vloeiende interactie
-        function animationLoop(timestamp) {
-            // Hier kunnen we in de toekomst animaties toevoegen
-            requestAnimationFrame(animationLoop);
-        }
-        
-        // Start de applicatie
-        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
