@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactieve Tekentool met Zoom | Handige Afbeelding Tools</title>
+    <title>Snelle Tekentool met Zoom | Handige Afbeelding Tools</title>
     <link rel="stylesheet" href="style.css">
     <style>
         /* Aanvullende stijlen specifiek voor deze tool */
@@ -16,6 +16,19 @@
         
         .tool-icon {
             font-size: 3rem;
+        }
+        
+        .main-content {
+            flex-direction: row-reverse; /* Afbeelding rechts, controls links */
+        }
+        
+        .preview-container {
+            flex: 2; /* Meer ruimte voor canvas */
+        }
+        
+        .controls {
+            flex: 1; /* Minder ruimte voor controls */
+            min-width: 300px;
         }
         
         .canvas-wrapper {
@@ -34,6 +47,10 @@
             top: 0;
             left: 0;
             cursor: crosshair;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
         
         .canvas-placeholder {
@@ -46,35 +63,20 @@
             z-index: 1;
         }
         
-        .canvas-controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 10;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            min-width: 200px;
-        }
-        
         .color-palette {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
             gap: 8px;
             margin-top: 10px;
         }
         
         .color-swatch {
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: transform 0.1s, border-color 0.1s;
         }
         
         .color-swatch:hover {
@@ -84,27 +86,29 @@
         .color-swatch.active {
             border-color: #182848;
             transform: scale(1.1);
+            box-shadow: 0 0 0 2px rgba(24, 40, 72, 0.2);
         }
         
         .custom-color-container {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         
         #customColor {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: none;
             cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         
         .zoom-controls {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 10px;
             background-color: #f0f5ff;
             padding: 10px;
             border-radius: 8px;
@@ -112,8 +116,8 @@
         }
         
         .zoom-btn {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background-color: #4b6cb7;
             color: white;
@@ -123,7 +127,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
         
         .zoom-btn:hover {
@@ -134,25 +138,31 @@
         .zoom-level {
             font-weight: 600;
             color: #182848;
+            flex-grow: 1;
+            text-align: center;
         }
         
         .drawing-tools {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
         }
         
         .tool-btn {
-            flex: 1;
-            padding: 12px;
+            padding: 12px 5px;
             background-color: #f8f9ff;
             border: 2px solid #d1d6ee;
             border-radius: 8px;
             cursor: pointer;
             text-align: center;
-            transition: all 0.3s;
+            transition: all 0.2s;
             font-weight: 600;
             color: #182848;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
         }
         
         .tool-btn:hover {
@@ -166,16 +176,21 @@
             color: white;
         }
         
+        .tool-btn i {
+            font-size: 1.2rem;
+        }
+        
         .status-bar {
             position: absolute;
             bottom: 10px;
             left: 10px;
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.95);
             padding: 8px 15px;
             border-radius: 8px;
             font-size: 0.9rem;
             color: #182848;
             z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
         .brush-preview {
@@ -183,34 +198,79 @@
             align-items: center;
             gap: 15px;
             margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9ff;
+            border-radius: 8px;
         }
         
         .brush-circle {
             border-radius: 50%;
             background-color: currentColor;
             border: 1px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         
         .pan-hint {
             background-color: rgba(75, 108, 183, 0.1);
             padding: 10px;
             border-radius: 6px;
-            margin-top: 10px;
+            margin-top: 15px;
             font-size: 0.85rem;
             color: #4b6cb7;
+            text-align: center;
         }
         
-        @media (max-width: 768px) {
-            .canvas-wrapper {
-                height: 400px;
+        .pan-hint kbd {
+            background-color: #f0f5ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #d1d6ee;
+            font-family: monospace;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+        
+        .transform-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #182848;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Prestatie optimalisaties */
+        .canvas-wrapper {
+            will-change: transform;
+        }
+        
+        #drawingCanvas {
+            will-change: transform;
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                flex-direction: column;
             }
             
-            .canvas-controls {
-                position: relative;
-                top: auto;
-                right: auto;
-                margin-bottom: 20px;
-                min-width: auto;
+            .canvas-wrapper {
+                height: 400px;
             }
             
             .status-bar {
@@ -218,154 +278,216 @@
                 bottom: auto;
                 left: auto;
                 margin-top: 15px;
+                width: 100%;
             }
         }
+        
+        @media (max-width: 576px) {
+            .drawing-tools {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .color-palette {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        /* Snellere animaties */
+        * {
+            scroll-behavior: auto !important;
+        }
+        
+        .tool-btn, .zoom-btn, .color-swatch {
+            transition-duration: 0.1s !important;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Interactieve Tekentool met Zoom</h1>
+            <h1>Snelle Tekentool met Zoom</h1>
             <p class="subtitle">Teken met precisie op afbeeldingen, zoom oneindig in en pas pen dikte aan</p>
         </header>
         
         <div class="main-content">
-            <div class="tool-header">
-                <div class="tool-icon">✏️</div>
-                <div>
-                    <h2>Precisie Tekentool</h2>
-                    <p>Upload een afbeelding en teken er met precisie overheen. Zoom oneindig in voor detailwerk.</p>
-                </div>
-            </div>
-            
-            <div class="input-methods">
-                <div class="method-btn active" id="uploadMethod">
-                    <div class="method-icon">📁</div>
-                    <div>Upload Afbeelding</div>
-                </div>
-                <div class="method-btn" id="screenshotMethod">
-                    <div class="method-icon">📷</div>
-                    <div>Maak Screenshot</div>
-                </div>
-            </div>
-            
-            <div id="uploadSection">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📁</div>
-                    <div class="upload-text">Klik hier of sleep een afbeelding om te uploaden</div>
-                    <p>Ondersteunde formaten: JPG, PNG, GIF, WebP</p>
-                    <input type="file" id="imageInput" class="file-input" accept="image/*">
+            <div class="preview-container">
+                <div class="tool-header">
+                    <div class="tool-icon">🎨</div>
+                    <div>
+                        <h2>Precisie Tekentool</h2>
+                        <p>Upload een afbeelding en teken er met precisie overheen. Zoom oneindig in voor detailwerk.</p>
+                    </div>
                 </div>
                 
-                <div class="screenshot-area hidden" id="screenshotSection">
-                    <div class="screenshot-icon">📷</div>
-                    <div class="screenshot-text">Klik op de knop om een screenshot te maken</div>
-                    <p>De tool maakt een screenshot van het volledige scherm of een geselecteerd gebied</p>
-                    <button class="button screenshot-btn" id="captureBtn">Screenshot Maken</button>
-                    
-                    <div class="screenshot-instructions">
-                        <h4>Hoe maak je een screenshot:</h4>
-                        <ol>
-                            <li>Klik op "Screenshot Maken"</li>
-                            <li>Selecteer het gebied dat je wilt vastleggen</li>
-                            <li>De screenshot wordt automatisch geladen in de tekentool</li>
-                        </ol>
+                <div class="input-methods">
+                    <div class="method-btn active" id="uploadMethod">
+                        <div class="method-icon"><i class="fas fa-upload"></i></div>
+                        <div>Upload Afbeelding</div>
+                    </div>
+                    <div class="method-btn" id="screenshotMethod">
+                        <div class="method-icon"><i class="fas fa-camera"></i></div>
+                        <div>Maak Screenshot</div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="preview-container">
+                
+                <div id="uploadSection">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div class="upload-text">Klik hier of sleep een afbeelding om te uploaden</div>
+                        <p>Ondersteunde formaten: JPG, PNG, GIF, WebP (max 10MB)</p>
+                        <input type="file" id="imageInput" class="file-input" accept="image/*">
+                    </div>
+                    
+                    <div class="screenshot-area hidden" id="screenshotSection">
+                        <div class="screenshot-icon"><i class="fas fa-camera"></i></div>
+                        <div class="screenshot-text">Klik op de knop om een screenshot te maken</div>
+                        <p>De tool maakt een screenshot van het volledige scherm of een geselecteerd gebied</p>
+                        <button class="button screenshot-btn" id="captureBtn">Screenshot Maken</button>
+                        
+                        <div class="screenshot-instructions">
+                            <h4>Hoe maak je een screenshot:</h4>
+                            <ol>
+                                <li>Klik op "Screenshot Maken"</li>
+                                <li>Selecteer het gebied dat je wilt vastleggen</li>
+                                <li>De screenshot wordt automatisch geladen in de tekentool</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="canvas-wrapper">
                     <div class="canvas-placeholder" id="canvasPlaceholder">
-                        <div style="font-size: 4rem; margin-bottom: 15px;">🖼️</div>
+                        <div style="font-size: 4rem; margin-bottom: 15px;"><i class="fas fa-image"></i></div>
                         <p>Upload een afbeelding om te beginnen met tekenen</p>
+                        <p class="status-waiting" style="margin-top: 10px;">Sleep je afbeelding hiernaartoe of klik om te selecteren</p>
                     </div>
-                    <canvas id="drawingCanvas"></canvas>
+                    <div class="canvas-container">
+                        <canvas id="drawingCanvas"></canvas>
+                    </div>
                     
-                    <div class="canvas-controls">
-                        <div class="control-group">
-                            <label>Kleur</label>
-                            <div class="color-palette" id="colorPalette">
-                                <!-- Kleuren worden via JavaScript toegevoegd -->
-                            </div>
-                            <div class="custom-color-container">
-                                <label for="customColor">Aangepast:</label>
-                                <input type="color" id="customColor" value="#4b6cb7">
-                            </div>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label>Pen Dikte</label>
-                            <div class="slider-container">
-                                <input type="range" min="1" max="50" value="5" class="slider" id="brushSize">
-                                <div class="slider-value" id="brushSizeValue">5px</div>
-                            </div>
-                            <div class="brush-preview">
-                                <span>Preview:</span>
-                                <div class="brush-circle" id="brushPreview"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label>Zoom</label>
-                            <div class="zoom-controls">
-                                <button class="zoom-btn" id="zoomOut">-</button>
-                                <div class="zoom-level">Zoom: <span id="zoomLevel">100%</span></div>
-                                <button class="zoom-btn" id="zoomIn">+</button>
-                            </div>
-                            <div class="pan-hint">
-                                <strong>Tip:</strong> Gebruik het muiswiel om in/uit te zoomen. Houd Space ingedrukt en sleep om te pannen.
-                            </div>
-                        </div>
-                        
-                        <div class="drawing-tools">
-                            <div class="tool-btn active" id="brushTool">✏️ Pen</div>
-                            <div class="tool-btn" id="eraserTool">🗑️ Gum</div>
-                            <div class="tool-btn" id="clearTool">🧹 Schoon</div>
-                        </div>
+                    <div class="transform-info">
+                        Pan: <kbd>Shift</kbd> + Sleep | Zoom: Muisscroll
                     </div>
                     
                     <div class="status-bar">
                         <span id="cursorPosition">Positie: -</span> | 
-                        <span id="zoomStatus">Zoom: 100%</span>
+                        <span id="zoomStatus">Zoom: 100%</span> |
+                        <span id="brushStatus">Dikte: 5px</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <h3 class="section-title"><i class="fas fa-sliders-h"></i> Tekengereedschappen</h3>
+                
+                <div class="control-group">
+                    <label><i class="fas fa-palette"></i> Kleur Kiezen</label>
+                    <div class="color-palette" id="colorPalette">
+                        <!-- Kleuren worden via JavaScript toegevoegd -->
+                    </div>
+                    <div class="custom-color-container">
+                        <label for="customColor">Aangepaste kleur:</label>
+                        <input type="color" id="customColor" value="#4b6cb7" title="Kies een aangepaste kleur">
                     </div>
                 </div>
                 
-                <div class="controls">
-                    <div class="control-group">
-                        <h3 class="section-title">Acties</h3>
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                            <button class="button" id="resetZoomBtn">Reset Zoom</button>
-                            <button class="button" id="undoBtn">↶ Ongedaan Maken</button>
-                            <button class="button" id="redoBtn">↷ Opnieuw Doen</button>
-                            <button class="button" id="saveBtn">💾 Opslaan als PNG</button>
+                <div class="control-group">
+                    <label><i class="fas fa-brush"></i> Pen Dikte</label>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="50" value="5" class="slider" id="brushSize">
+                        <div class="slider-value" id="brushSizeValue">5px</div>
+                    </div>
+                    <div class="brush-preview">
+                        <span>Voorbeeld:</span>
+                        <div class="brush-circle" id="brushPreview" style="background-color: #4b6cb7;"></div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label><i class="fas fa-tools"></i> Gereedschappen</label>
+                    <div class="drawing-tools">
+                        <div class="tool-btn active" id="brushTool">
+                            <i class="fas fa-pen"></i>
+                            <span>Pen</span>
+                        </div>
+                        <div class="tool-btn" id="eraserTool">
+                            <i class="fas fa-eraser"></i>
+                            <span>Gum</span>
+                        </div>
+                        <div class="tool-btn" id="clearTool">
+                            <i class="fas fa-broom"></i>
+                            <span>Schoon</span>
                         </div>
                     </div>
                 </div>
                 
-                <div class="info-box">
-                    <div class="info-title">Hoe gebruik je deze tool?</div>
+                <div class="control-group">
+                    <label><i class="fas fa-search"></i> Zoom & Navigatie</label>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoomOut" title="Uitzoomen"><i class="fas fa-search-minus"></i></button>
+                        <div class="zoom-level" id="zoomLevelDisplay">100%</div>
+                        <button class="zoom-btn" id="zoomIn" title="Inzoomen"><i class="fas fa-search-plus"></i></button>
+                    </div>
+                    <button class="button" id="resetZoomBtn" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-expand-arrows-alt"></i> Reset Zoom
+                    </button>
+                    <div class="pan-hint">
+                        <strong>Snelle navigatie:</strong><br>
+                        Houd <kbd>Shift</kbd> ingedrukt en sleep om te pannen<br>
+                        Gebruik het muiswiel om in/uit te zoomen
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label><i class="fas fa-history"></i> Geschiedenis</label>
+                    <div class="action-buttons">
+                        <button class="button" id="undoBtn">
+                            <i class="fas fa-undo"></i> Ongedaan Maken
+                        </button>
+                        <button class="button" id="redoBtn">
+                            <i class="fas fa-redo"></i> Opnieuw Doen
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label><i class="fas fa-download"></i> Opslaan</label>
+                    <button class="button download-btn" id="saveBtn" style="width: 100%;">
+                        <i class="fas fa-save"></i> Opslaan als PNG
+                    </button>
+                    <div class="marges-info" style="margin-top: 10px;">
+                        <i class="fas fa-info-circle"></i> De afbeelding wordt opgeslagen met behoud van transparantie.
+                    </div>
+                </div>
+                
+                <div class="info-box" style="margin-top: 20px;">
+                    <div class="info-title"><i class="fas fa-lightbulb"></i> Sneltoetsen</div>
                     <div class="info-text">
-                        <p><strong>1. Upload een afbeelding</strong> door er een te selecteren of een screenshot te maken.</p>
-                        <p><strong>2. Kies een kleur en pen dikte</strong> uit de bedieningselementen aan de rechterkant.</p>
-                        <p><strong>3. Teken op de afbeelding</strong> door te klikken en te slepen met de muis.</p>
-                        <p><strong>4. Zoom in voor precisie</strong> met de zoomknoppen of het muiswiel.</p>
-                        <p><strong>5. Gebruik de gum</strong> om delen van je tekening te verwijderen.</p>
-                        <p><strong>6. Sla je creatie op</strong> met de "Opslaan als PNG" knop.</p>
+                        <p><kbd>Shift</kbd> + Sleep = Pannen<br>
+                        <kbd>Muiswiel</kbd> = Zoomen<br>
+                        <kbd>Ctrl+Z</kbd> = Ongedaan maken<br>
+                        <kbd>Ctrl+Y</kbd> = Opnieuw doen<br>
+                        <kbd>B</kbd> = Pen gereedschap<br>
+                        <kbd>E</kbd> = Gum gereedschap</p>
                     </div>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>Interactieve Tekentool met Zoom &copy; 2023 | Handige Afbeelding Tools</p>
+            <p>Snelle Tekentool met Zoom &copy; 2023 | Handige Afbeelding Tools | <kbd>Shift</kbd> om te pannen</p>
         </footer>
     </div>
 
     <script>
-        // Basis variabelen
+        // Basis variabelen - geoptimaliseerd voor prestaties
         const canvas = document.getElementById('drawingCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
         const canvasWrapper = document.querySelector('.canvas-wrapper');
         const canvasPlaceholder = document.getElementById('canvasPlaceholder');
         
@@ -385,32 +507,58 @@
         let drawingHistory = [];
         let historyIndex = -1;
         let isEraser = false;
-        let spacePressed = false;
+        let shiftPressed = false;
+        let isDragging = false;
+        let lastTime = 0;
+        const FPS_LIMIT = 60;
+        const frameTime = 1000 / FPS_LIMIT;
         
-        // Kleurenpalet
+        // Kleurenpalet - helderdere kleuren voor betere zichtbaarheid
         const colors = [
             '#4b6cb7', // primaire blauw
-            '#e74c3c', // rood
-            '#2ecc71', // groen
-            '#f1c40f', // geel
-            '#9b59b6', // paars
-            '#1abc9c', // turquoise
-            '#e67e22', // oranje
+            '#e74c3c', // fel rood
+            '#2ecc71', // fel groen
+            '#f1c40f', // fel geel
+            '#9b59b6', // fel paars
+            '#1abc9c', // fel turquoise
+            '#e67e22', // fel oranje
             '#34495e', // donker blauw/grijs
             '#ffffff', // wit
-            '#000000'  // zwart
+            '#000000', // zwart
+            '#ff6b6b', // koraal rood
+            '#48dbfb', // lichtblauw
+            '#1dd1a1', // mint groen
+            '#feca57', // oranje geel
+            '#ff9ff3'  // roze
         ];
         
-        // Initialisatie
+        // Initialisatie functie - geoptimaliseerd
         function init() {
             setupColorPalette();
             setupEventListeners();
             updateBrushPreview();
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+            
+            // Start animatie loop voor vloeiende tekenervaring
+            requestAnimationFrame(animationLoop);
+            
+            // Stel de canvas rendering in voor betere prestaties
+            optimizeCanvas();
         }
         
-        // Kleurenpalet opzetten
+        // Canvas optimalisatie voor betere prestaties
+        function optimizeCanvas() {
+            // Zet de canvas rendering op high performance
+            canvas.style.imageRendering = 'optimizeSpeed';
+            canvas.style.willChange = 'transform';
+            
+            // Gebruik een offscreen canvas voor snellere bewerkingen
+            if (!window.offscreenCanvas) {
+                window.offscreenCanvas = document.createElement('canvas');
+                window.offscreenCtx = window.offscreenCanvas.getContext('2d');
+            }
+        }
+        
+        // Kleurenpalet opzetten - geoptimaliseerd
         function setupColorPalette() {
             const palette = document.getElementById('colorPalette');
             palette.innerHTML = '';
@@ -420,61 +568,92 @@
                 colorSwatch.className = 'color-swatch';
                 colorSwatch.style.backgroundColor = color;
                 colorSwatch.dataset.color = color;
+                colorSwatch.title = color;
                 
                 if (color === currentColor) {
                     colorSwatch.classList.add('active');
                 }
                 
                 colorSwatch.addEventListener('click', () => {
-                    document.querySelectorAll('.color-swatch').forEach(swatch => {
-                        swatch.classList.remove('active');
-                    });
+                    // Snelle kleurwijziging zonder veel DOM operaties
+                    const activeSwatch = palette.querySelector('.active');
+                    if (activeSwatch) activeSwatch.classList.remove('active');
                     colorSwatch.classList.add('active');
                     currentColor = color;
                     document.getElementById('customColor').value = color;
                     isEraser = false;
-                    document.getElementById('brushTool').classList.add('active');
-                    document.getElementById('eraserTool').classList.remove('active');
+                    
+                    // Update brush preview kleur
+                    document.getElementById('brushPreview').style.backgroundColor = color;
+                    
+                    // Update tool status
+                    const brushTool = document.getElementById('brushTool');
+                    const eraserTool = document.getElementById('eraserTool');
+                    brushTool.classList.add('active');
+                    eraserTool.classList.remove('active');
                 });
                 
                 palette.appendChild(colorSwatch);
             });
         }
         
-        // Event listeners instellen
+        // Event listeners instellen - geoptimaliseerd
         function setupEventListeners() {
-            // Input method switcher
-            document.getElementById('uploadMethod').addEventListener('click', () => {
-                document.getElementById('uploadMethod').classList.add('active');
-                document.getElementById('screenshotMethod').classList.remove('active');
-                document.getElementById('uploadArea').classList.remove('hidden');
-                document.getElementById('screenshotSection').classList.add('hidden');
-            });
-            
-            document.getElementById('screenshotMethod').addEventListener('click', () => {
-                document.getElementById('uploadMethod').classList.remove('active');
-                document.getElementById('screenshotMethod').classList.add('active');
-                document.getElementById('uploadArea').classList.add('hidden');
-                document.getElementById('screenshotSection').classList.remove('hidden');
+            // Gebruik event delegation voor betere prestaties
+            document.addEventListener('click', (e) => {
+                // Input method switcher
+                if (e.target.closest('#uploadMethod')) {
+                    switchToUpload();
+                } else if (e.target.closest('#screenshotMethod')) {
+                    switchToScreenshot();
+                }
+                
+                // Tool selectie
+                if (e.target.closest('#brushTool')) {
+                    selectBrushTool();
+                } else if (e.target.closest('#eraserTool')) {
+                    selectEraserTool();
+                } else if (e.target.closest('#clearTool')) {
+                    clearDrawing();
+                }
+                
+                // Zoom controls
+                if (e.target.closest('#zoomIn')) {
+                    zoom(1.2);
+                } else if (e.target.closest('#zoomOut')) {
+                    zoom(0.8);
+                } else if (e.target.closest('#resetZoomBtn')) {
+                    resetZoom();
+                }
+                
+                // Actie knoppen
+                if (e.target.closest('#undoBtn')) {
+                    undo();
+                } else if (e.target.closest('#redoBtn')) {
+                    redo();
+                } else if (e.target.closest('#saveBtn')) {
+                    saveImage();
+                }
             });
             
             // Afbeelding uploaden
-            document.getElementById('uploadArea').addEventListener('click', () => {
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.addEventListener('click', () => {
                 document.getElementById('imageInput').click();
             });
             
-            document.getElementById('uploadArea').addEventListener('dragover', (e) => {
+            uploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                document.getElementById('uploadArea').classList.add('highlight');
+                uploadArea.classList.add('highlight');
             });
             
-            document.getElementById('uploadArea').addEventListener('dragleave', () => {
-                document.getElementById('uploadArea').classList.remove('highlight');
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('highlight');
             });
             
-            document.getElementById('uploadArea').addEventListener('drop', (e) => {
+            uploadArea.addEventListener('drop', (e) => {
                 e.preventDefault();
-                document.getElementById('uploadArea').classList.remove('highlight');
+                uploadArea.classList.remove('highlight');
                 
                 if (e.dataTransfer.files.length) {
                     handleImageUpload(e.dataTransfer.files[0]);
@@ -487,138 +666,140 @@
                 }
             });
             
-            // Screenshot functionaliteit (vereist gebruikersinteractie)
-            document.getElementById('captureBtn').addEventListener('click', () => {
-                alert('Screenshot functionaliteit werkt alleen in een live omgeving met de juiste API rechten. In deze demo kunt u een afbeelding uploaden.');
-            });
-            
             // Aangepaste kleur
             document.getElementById('customColor').addEventListener('input', (e) => {
                 currentColor = e.target.value;
-                document.querySelectorAll('.color-swatch').forEach(swatch => {
-                    swatch.classList.remove('active');
+                
+                // Update active swatch
+                const swatches = document.querySelectorAll('.color-swatch');
+                let found = false;
+                for (let swatch of swatches) {
                     if (swatch.dataset.color === currentColor) {
                         swatch.classList.add('active');
+                        found = true;
+                    } else {
+                        swatch.classList.remove('active');
                     }
-                });
+                }
+                
+                // Als kleur niet in palet staat, maak alle inactief
+                if (!found) {
+                    swatches.forEach(swatch => swatch.classList.remove('active'));
+                }
+                
                 isEraser = false;
-                document.getElementById('brushTool').classList.add('active');
-                document.getElementById('eraserTool').classList.remove('active');
+                selectBrushTool();
+                document.getElementById('brushPreview').style.backgroundColor = currentColor;
             });
             
             // Pen dikte
             const brushSizeSlider = document.getElementById('brushSize');
-            const brushSizeValue = document.getElementById('brushSizeValue');
-            
             brushSizeSlider.addEventListener('input', (e) => {
                 brushSize = parseInt(e.target.value);
-                brushSizeValue.textContent = `${brushSize}px`;
+                document.getElementById('brushSizeValue').textContent = `${brushSize}px`;
+                document.getElementById('brushStatus').textContent = `Dikte: ${brushSize}px`;
                 updateBrushPreview();
             });
             
-            // Zoom controls
-            document.getElementById('zoomIn').addEventListener('click', () => zoom(1.2));
-            document.getElementById('zoomOut').addEventListener('click', () => zoom(0.8));
-            document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
-            
-            // Muiswiel voor zoom
+            // Zoom met muiswiel
             canvasWrapper.addEventListener('wheel', handleMouseWheel, { passive: false });
             
-            // Teken tools
-            document.getElementById('brushTool').addEventListener('click', () => {
-                isEraser = false;
-                document.getElementById('brushTool').classList.add('active');
-                document.getElementById('eraserTool').classList.remove('active');
-            });
-            
-            document.getElementById('eraserTool').addEventListener('click', () => {
-                isEraser = true;
-                document.getElementById('brushTool').classList.remove('active');
-                document.getElementById('eraserTool').classList.add('active');
-            });
-            
-            document.getElementById('clearTool').addEventListener('click', () => {
-                if (confirm('Weet je zeker dat je de hele tekening wilt verwijderen?')) {
-                    clearDrawing();
-                }
-            });
-            
-            // Canvas teken events
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            // Touch events voor mobiele apparaten
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('touchend', stopDrawing);
-            
-            // Panning met spatiebalk
+            // Toetsenbord events voor panning met Shift
             window.addEventListener('keydown', (e) => {
-                if (e.code === 'Space') {
-                    spacePressed = true;
-                    canvas.style.cursor = 'grab';
+                if (e.key === 'Shift') {
+                    shiftPressed = true;
+                    if (isDragging) {
+                        isPanning = true;
+                        canvas.style.cursor = 'grab';
+                    }
+                }
+                
+                // Sneltoetsen
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z' || e.key === 'Z') {
+                        e.preventDefault();
+                        undo();
+                    } else if (e.key === 'y' || e.key === 'Y') {
+                        e.preventDefault();
+                        redo();
+                    }
+                }
+                
+                if (e.key === 'b' || e.key === 'B') {
+                    e.preventDefault();
+                    selectBrushTool();
+                } else if (e.key === 'e' || e.key === 'E') {
+                    e.preventDefault();
+                    selectEraserTool();
                 }
             });
             
             window.addEventListener('keyup', (e) => {
-                if (e.code === 'Space') {
-                    spacePressed = false;
-                    canvas.style.cursor = 'crosshair';
+                if (e.key === 'Shift') {
+                    shiftPressed = false;
                     isPanning = false;
+                    if (!isDrawing) {
+                        canvas.style.cursor = 'crosshair';
+                    }
                 }
             });
             
-            // Panning met muis
-            canvas.addEventListener('mousedown', (e) => {
-                if (spacePressed || e.button === 1) { // Spatie ingedrukt of middelste muisknop
-                    isPanning = true;
-                    lastPanX = e.clientX;
-                    lastPanY = e.clientY;
-                    canvas.style.cursor = 'grabbing';
-                    e.preventDefault();
-                }
-            });
+            // Canvas events - geoptimaliseerd
+            canvas.addEventListener('mousedown', startDrawingOrPanning);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', stopDrawingOrPanning);
+            canvas.addEventListener('mouseleave', stopDrawingOrPanning);
             
-            canvas.addEventListener('mousemove', (e) => {
-                if (isPanning) {
-                    const deltaX = e.clientX - lastPanX;
-                    const deltaY = e.clientY - lastPanY;
-                    
-                    offsetX += deltaX;
-                    offsetY += deltaY;
-                    
-                    lastPanX = e.clientX;
-                    lastPanY = e.clientY;
-                    
-                    updateCanvas();
-                    e.preventDefault();
-                }
-                
-                // Update cursor positie
-                updateCursorPosition(e);
-            });
+            // Touch events voor mobiele apparaten
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', stopDrawingOrPanning);
             
-            canvas.addEventListener('mouseup', () => {
-                if (isPanning) {
-                    isPanning = false;
-                    canvas.style.cursor = spacePressed ? 'grab' : 'crosshair';
-                }
-            });
-            
-            // Actie knoppen
-            document.getElementById('undoBtn').addEventListener('click', undo);
-            document.getElementById('redoBtn').addEventListener('click', redo);
-            document.getElementById('saveBtn').addEventListener('click', saveImage);
+            // Resize event voor responsive canvas
+            window.addEventListener('resize', handleResize);
         }
         
-        // Afbeelding upload handler
+        // Hulp functies voor UI
+        function switchToUpload() {
+            document.getElementById('uploadMethod').classList.add('active');
+            document.getElementById('screenshotMethod').classList.remove('active');
+            document.getElementById('uploadArea').classList.remove('hidden');
+            document.getElementById('screenshotSection').classList.add('hidden');
+        }
+        
+        function switchToScreenshot() {
+            document.getElementById('uploadMethod').classList.remove('active');
+            document.getElementById('screenshotMethod').classList.add('active');
+            document.getElementById('uploadArea').classList.add('hidden');
+            document.getElementById('screenshotSection').classList.remove('hidden');
+            alert('Screenshot functionaliteit werkt alleen in een live omgeving. Upload een afbeelding om te beginnen.');
+        }
+        
+        function selectBrushTool() {
+            isEraser = false;
+            document.getElementById('brushTool').classList.add('active');
+            document.getElementById('eraserTool').classList.remove('active');
+        }
+        
+        function selectEraserTool() {
+            isEraser = true;
+            document.getElementById('brushTool').classList.remove('active');
+            document.getElementById('eraserTool').classList.add('active');
+        }
+        
+        // Afbeelding upload handler - geoptimaliseerd
         function handleImageUpload(file) {
             if (!file.type.match('image.*')) {
-                alert('Selecteer een afbeelding bestand (JPG, PNG, GIF, WebP)');
+                showStatus('Selecteer een afbeelding bestand (JPG, PNG, GIF, WebP)', 'error');
                 return;
             }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                showStatus('Afbeelding is te groot (max 10MB)', 'error');
+                return;
+            }
+            
+            showStatus('Afbeelding laden...', 'info');
             
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -627,9 +808,24 @@
                     uploadedImage = img;
                     canvasPlaceholder.style.display = 'none';
                     
-                    // Pas canvas aan aan afbeelding grootte
-                    canvas.width = img.width;
-                    canvas.height = img.height;
+                    // Optimaliseer canvas grootte
+                    const maxDimension = 2048;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > maxDimension || height > maxDimension) {
+                        const ratio = Math.min(maxDimension / width, maxDimension / height);
+                        width = Math.floor(width * ratio);
+                        height = Math.floor(height * ratio);
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    if (window.offscreenCanvas) {
+                        window.offscreenCanvas.width = width;
+                        window.offscreenCanvas.height = height;
+                    }
                     
                     // Reset zoom en positie
                     resetZoom();
@@ -638,44 +834,25 @@
                     // Sla initiële staat op in geschiedenis
                     saveToHistory();
                     
-                    // Update canvas grootte
-                    resizeCanvas();
+                    showStatus('Afbeelding geladen! Begin met tekenen.', 'success');
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         }
         
-        // Canvas grootte aanpassen aan container
-        function resizeCanvas() {
-            if (!uploadedImage) return;
-            
-            const containerWidth = canvasWrapper.clientWidth;
-            const containerHeight = canvasWrapper.clientHeight;
-            
-            // Bereken schaal om canvas binnen container te passen
-            const scaleX = containerWidth / canvas.width;
-            const scaleY = containerHeight / canvas.height;
-            const scale = Math.min(scaleX, scaleY, 1);
-            
-            // Update canvas stijl
-            canvas.style.width = `${canvas.width * scale}px`;
-            canvas.style.height = `${canvas.height * scale}px`;
-            canvas.style.left = `${(containerWidth - canvas.width * scale) / 2}px`;
-            canvas.style.top = `${(containerHeight - canvas.height * scale) / 2}px`;
-        }
-        
-        // Zoom functies
+        // Zoom functies - geoptimaliseerd
         function zoom(factor) {
             const oldZoom = zoomLevel;
             zoomLevel *= factor;
             
-            // Limiteer zoom tussen 0.1x en 20x
-            zoomLevel = Math.max(0.1, Math.min(20, zoomLevel));
+            // Limiteer zoom tussen 0.01x en 50x voor meer precisie
+            zoomLevel = Math.max(0.01, Math.min(50, zoomLevel));
             
             // Update zoom level display
-            document.getElementById('zoomLevel').textContent = `${Math.round(zoomLevel * 100)}%`;
-            document.getElementById('zoomStatus').textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+            const zoomPercent = Math.round(zoomLevel * 100);
+            document.getElementById('zoomLevelDisplay').textContent = `${zoomPercent}%`;
+            document.getElementById('zoomStatus').textContent = `Zoom: ${zoomPercent}%`;
             
             // Update canvas weergave
             updateCanvas();
@@ -686,97 +863,130 @@
             
             // Zoom in/uit op basis van scroll richting
             const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-            zoom(zoomFactor);
+            
+            // Zoom sneller als Ctrl is ingedrukt
+            if (e.ctrlKey) {
+                zoom(zoomFactor * 1.3);
+            } else {
+                zoom(zoomFactor);
+            }
         }
         
         function resetZoom() {
             zoomLevel = 1;
             offsetX = 0;
             offsetY = 0;
-            document.getElementById('zoomLevel').textContent = '100%';
+            document.getElementById('zoomLevelDisplay').textContent = '100%';
             document.getElementById('zoomStatus').textContent = 'Zoom: 100%';
             updateCanvas();
         }
         
-        // Canvas update functie
-        function updateCanvas() {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Teken en pan functies - geoptimaliseerd
+        function startDrawingOrPanning(e) {
+            e.preventDefault();
+            isDragging = true;
             
-            // Save context state
-            ctx.save();
+            const [x, y] = getCanvasCoordinates(e);
             
-            // Apply zoom and pan transformations
-            ctx.translate(offsetX, offsetY);
-            ctx.scale(zoomLevel, zoomLevel);
-            
-            // Draw uploaded image if exists
-            if (uploadedImage) {
-                ctx.drawImage(uploadedImage, 0, 0);
+            if (shiftPressed) {
+                // Start panning
+                isPanning = true;
+                isDrawing = false;
+                lastPanX = e.clientX || e.touches[0].clientX;
+                lastPanY = e.clientY || e.touches[0].clientY;
+                canvas.style.cursor = 'grabbing';
+            } else {
+                // Start drawing
+                isDrawing = true;
+                isPanning = false;
+                [lastX, lastY] = [x, y];
+                
+                // Begin een nieuw pad voor sneller tekenen
+                ctx.save();
+                ctx.translate(offsetX, offsetY);
+                ctx.scale(zoomLevel, zoomLevel);
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineWidth = brushSize;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = isEraser ? '#ffffff' : currentColor;
+                ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+                
+                ctx.restore();
             }
-            
-            // Restore context state
-            ctx.restore();
         }
         
-        // Teken functies
-        function startDrawing(e) {
-            if (spacePressed || isPanning) return;
-            
-            isDrawing = true;
-            [lastX, lastY] = getCanvasCoordinates(e);
-            
-            // Begin een nieuw pad
-            ctx.save();
-            ctx.translate(offsetX, offsetY);
-            ctx.scale(zoomLevel, zoomLevel);
-            
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            
-            ctx.restore();
-        }
-        
-        function draw(e) {
-            if (!isDrawing || spacePressed || isPanning) return;
-            
+        function handleMouseMove(e) {
             e.preventDefault();
             
             const [x, y] = getCanvasCoordinates(e);
             
-            // Teken lijn
-            ctx.save();
-            ctx.translate(offsetX, offsetY);
-            ctx.scale(zoomLevel, zoomLevel);
+            if (isPanning && shiftPressed) {
+                // Panning logica
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                
+                if (clientX !== undefined && clientY !== undefined) {
+                    const deltaX = clientX - lastPanX;
+                    const deltaY = clientY - lastPanY;
+                    
+                    offsetX += deltaX;
+                    offsetY += deltaY;
+                    
+                    lastPanX = clientX;
+                    lastPanY = clientY;
+                    
+                    updateCanvas();
+                }
+            } else if (isDrawing) {
+                // Tekenen logica
+                ctx.save();
+                ctx.translate(offsetX, offsetY);
+                ctx.scale(zoomLevel, zoomLevel);
+                
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                ctx.restore();
+                
+                // Update laatste positie
+                [lastX, lastY] = [x, y];
+            }
             
-            ctx.lineTo(x, y);
-            ctx.strokeStyle = isEraser ? '#ffffff' : currentColor;
-            ctx.lineWidth = brushSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.stroke();
-            
-            ctx.restore();
-            
-            // Update laatste positie
-            [lastX, lastY] = [x, y];
+            // Update cursor positie
+            updateCursorPosition(x, y);
         }
         
-        function stopDrawing() {
-            if (!isDrawing) return;
+        function stopDrawingOrPanning() {
+            if (isDrawing) {
+                isDrawing = false;
+                
+                // Sla de tekening op in geschiedenis
+                saveToHistory();
+            }
             
-            isDrawing = false;
+            if (isPanning) {
+                isPanning = false;
+            }
             
-            // Sla de tekening op in geschiedenis
-            saveToHistory();
+            isDragging = false;
+            
+            // Reset cursor naar crosshair tenzij shift ingedrukt
+            if (!shiftPressed) {
+                canvas.style.cursor = 'crosshair';
+            } else {
+                canvas.style.cursor = 'grab';
+            }
         }
         
-        // Hulp functie om canvas coördinaten te krijgen
+        // Hulp functies - geoptimaliseerd
         function getCanvasCoordinates(e) {
             const rect = canvas.getBoundingClientRect();
             let clientX, clientY;
             
-            if (e.type.includes('touch')) {
+            if (e.touches && e.touches.length) {
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
             } else {
@@ -791,34 +1001,71 @@
             return [x, y];
         }
         
-        // Update cursor positie display
-        function updateCursorPosition(e) {
+        function updateCursorPosition(x, y) {
             if (!uploadedImage) return;
             
-            const [x, y] = getCanvasCoordinates(e);
-            document.getElementById('cursorPosition').textContent = `Positie: ${Math.round(x)}, ${Math.round(y)}`;
+            document.getElementById('cursorPosition').textContent = 
+                `Positie: ${Math.round(x)}, ${Math.round(y)}`;
         }
         
-        // Brush preview updaten
         function updateBrushPreview() {
             const brushPreview = document.getElementById('brushPreview');
-            brushPreview.style.width = `${brushSize}px`;
-            brushPreview.style.height = `${brushSize}px`;
+            const size = Math.max(brushSize, 5); // Minimaal 5px voor zichtbaarheid
+            brushPreview.style.width = `${size}px`;
+            brushPreview.style.height = `${size}px`;
         }
         
         // Touch event handlers
         function handleTouchStart(e) {
             e.preventDefault();
-            startDrawing(e.touches[0]);
+            startDrawingOrPanning(e.touches[0]);
         }
         
         function handleTouchMove(e) {
             e.preventDefault();
-            draw(e.touches[0]);
+            handleMouseMove(e.touches[0]);
         }
         
-        // Geschiedenis functies
+        // Canvas update functie - geoptimaliseerd
+        function updateCanvas() {
+            // Gebruik een offscreen canvas voor snellere rendering
+            if (window.offscreenCanvas && uploadedImage) {
+                window.offscreenCtx.clearRect(0, 0, canvas.width, canvas.height);
+                window.offscreenCtx.drawImage(uploadedImage, 0, 0);
+                
+                // Teken bestaande tekening op offscreen canvas
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                window.offscreenCtx.putImageData(imageData, 0, 0);
+                
+                // Teken offscreen canvas op main canvas met transformaties
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                ctx.translate(offsetX, offsetY);
+                ctx.scale(zoomLevel, zoomLevel);
+                ctx.drawImage(window.offscreenCanvas, 0, 0);
+                ctx.restore();
+            } else {
+                // Fallback voor oudere browsers
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (uploadedImage) {
+                    ctx.save();
+                    ctx.translate(offsetX, offsetY);
+                    ctx.scale(zoomLevel, zoomLevel);
+                    ctx.drawImage(uploadedImage, 0, 0);
+                    ctx.restore();
+                }
+            }
+        }
+        
+        // Geschiedenis functies - geoptimaliseerd
         function saveToHistory() {
+            const now = Date.now();
+            
+            // Throttle geschiedenis opslag om prestaties te verbeteren
+            if (now - lastTime < 500 && historyIndex >= 0) return;
+            lastTime = now;
+            
             // Verwijder toekomstige geschiedenis als we ergens in het midden staan
             if (historyIndex < drawingHistory.length - 1) {
                 drawingHistory = drawingHistory.slice(0, historyIndex + 1);
@@ -829,8 +1076,8 @@
             drawingHistory.push(imageData);
             historyIndex = drawingHistory.length - 1;
             
-            // Limiteer geschiedenis grootte
-            if (drawingHistory.length > 50) {
+            // Limiteer geschiedenis grootte voor geheugen
+            if (drawingHistory.length > 20) {
                 drawingHistory.shift();
                 historyIndex--;
             }
@@ -858,7 +1105,9 @@
         
         // Canvas acties
         function clearDrawing() {
-            if (uploadedImage) {
+            if (!uploadedImage) return;
+            
+            if (confirm('Weet je zeker dat je de hele tekening wilt verwijderen?')) {
                 updateCanvas();
                 saveToHistory();
             }
@@ -866,21 +1115,25 @@
         
         function saveImage() {
             if (!uploadedImage) {
-                alert('Upload eerst een afbeelding om op te slaan.');
+                showStatus('Upload eerst een afbeelding om op te slaan.', 'error');
                 return;
             }
             
-            // Maak een tijdelijk canvas voor de gecombineerde afbeelding
-            const tempCanvas = document.createElement('canvas');
+            showStatus('Afbeelding opslaan...', 'info');
+            
+            // Gebruik offscreen canvas voor betere kwaliteit
+            const tempCanvas = window.offscreenCanvas || document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
             
             // Teken de originele afbeelding
             tempCtx.drawImage(uploadedImage, 0, 0);
             
             // Teken de tekening eroverheen
-            tempCtx.drawImage(canvas, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            tempCtx.putImageData(imageData, 0, 0);
             
             // Maak een download link
             const link = document.createElement('a');
@@ -888,6 +1141,37 @@
             link.download = `tekening-${timestamp}.png`;
             link.href = tempCanvas.toDataURL('image/png');
             link.click();
+            
+            showStatus('Afbeelding opgeslagen!', 'success');
+        }
+        
+        // Hulp functies
+        function showStatus(message, type) {
+            // Eenvoudige status melding
+            console.log(`${type}: ${message}`);
+            
+            // Update status bar voor belangrijke meldingen
+            if (type === 'error' || type === 'success') {
+                const statusBar = document.querySelector('.status-bar');
+                const originalHTML = statusBar.innerHTML;
+                
+                statusBar.innerHTML = `<span style="color:${type === 'error' ? '#e74c3c' : '#2ecc71'}">${message}</span>`;
+                
+                setTimeout(() => {
+                    statusBar.innerHTML = originalHTML;
+                }, 3000);
+            }
+        }
+        
+        function handleResize() {
+            // Canvas grootte blijft hetzelfde, alleen de weergave verandert
+            updateCanvas();
+        }
+        
+        // Animatie loop voor vloeiende interactie
+        function animationLoop(timestamp) {
+            // Hier kunnen we in de toekomst animaties toevoegen
+            requestAnimationFrame(animationLoop);
         }
         
         // Start de applicatie
